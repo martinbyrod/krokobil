@@ -16,13 +16,22 @@ export default function CalendarWeek({ startDate, activities }) {
               <div className="calendar-day__date">{format(day, 'd')}</div>
             </div>
             <div className="calendar-day__content">
-              {dayActivities.map(activity => (
-                <div key={activity.id} className="calendar-activity">
-                  <div className="calendar-activity__name">{activity.name}</div>
-                  <div className="calendar-activity__time">{format(new Date(`2000-01-01T${activity.time}`), 'h:mm a')}</div>
-                  <div className="calendar-activity__location">{activity.location}</div>
+              {dayActivities.length > 0 && (
+                <div className="calendar-day__activities">
+                  {dayActivities.map(activity => (
+                    <div 
+                      key={activity.instance_id} 
+                      className={`calendar-activity ${activity.is_cancelled ? 'calendar-activity--cancelled' : ''}`}
+                    >
+                      <div className="calendar-activity__name">{activity.name}</div>
+                      <div className="calendar-activity__time">
+                        {format(new Date(`2000-01-01T${activity.time}`), 'h:mm a')}
+                      </div>
+                      <div className="calendar-activity__location">{activity.location}</div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )

@@ -1,3 +1,12 @@
+-- First drop existing tables in correct order (due to foreign key constraints)
+DROP TABLE IF EXISTS kid_assignments;
+DROP TABLE IF EXISTS driver_assignments;
+DROP TABLE IF EXISTS activity_instances;
+DROP TABLE IF EXISTS activities;
+DROP TABLE IF EXISTS kids;
+DROP TABLE IF EXISTS drivers;
+
+-- Now create tables
 CREATE TABLE drivers (
     id SERIAL PRIMARY KEY,
     family_name VARCHAR(255) NOT NULL,
@@ -23,6 +32,11 @@ CREATE TABLE activity_instances (
     date DATE NOT NULL,
     is_cancelled BOOLEAN DEFAULT false
 );
+
+-- Add the unique constraint
+ALTER TABLE activity_instances 
+ADD CONSTRAINT unique_activity_date 
+UNIQUE (activity_id, date);
 
 CREATE TABLE driver_assignments (
     id SERIAL PRIMARY KEY,

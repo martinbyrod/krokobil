@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { format } from 'date-fns';
 import { getActivities, addActivity, deleteActivity } from '../../lib/db';
 
 export default function ActivitiesPanel() {
@@ -6,22 +7,12 @@ export default function ActivitiesPanel() {
   const [isAddingActivity, setIsAddingActivity] = useState(false);
   const [newActivity, setNewActivity] = useState({
     name: '',
-    day: 1, // Monday by default
-    time: '15:00', // 3:00 PM by default
+    day: 1,
+    time: '15:00',
     location: ''
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  const weekdays = [
-    { value: 1, label: 'Monday' },
-    { value: 2, label: 'Tuesday' },
-    { value: 3, label: 'Wednesday' },
-    { value: 4, label: 'Thursday' },
-    { value: 5, label: 'Friday' },
-    { value: 6, label: 'Saturday' },
-    { value: 7, label: 'Sunday' }
-  ];
 
   useEffect(() => {
     loadActivities();
@@ -46,12 +37,7 @@ export default function ActivitiesPanel() {
     try {
       setError(null);
       await addActivity(newActivity);
-      setNewActivity({
-        name: '',
-        day: 1,
-        time: '15:00',
-        location: ''
-      });
+      setNewActivity({ name: '', day: 1, time: '15:00', location: '' });
       setIsAddingActivity(false);
       loadActivities();
     } catch (err) {
@@ -71,13 +57,6 @@ export default function ActivitiesPanel() {
         console.error('Error deleting activity:', err);
       }
     }
-  }
-
-  function formatTime(timeString) {
-    return new Date(`2000-01-01T${timeString}`).toLocaleTimeString([], { 
-      hour: 'numeric', 
-      minute: '2-digit' 
-    });
   }
 
   return (
@@ -112,11 +91,13 @@ export default function ActivitiesPanel() {
             onChange={e => setNewActivity({...newActivity, day: parseInt(e.target.value)})}
             required
           >
-            {weekdays.map(day => (
-              <option key={day.value} value={day.value}>
-                {day.label}
-              </option>
-            ))}
+            <option value={1}>Monday</option>
+            <option value={2}>Tuesday</option>
+            <option value={3}>Wednesday</option>
+            <option value={4}>Thursday</option>
+            <option value={5}>Friday</option>
+            <option value={6}>Saturday</option>
+            <option value={7}>Sunday</option>
           </select>
           <input
             type="time"
@@ -155,8 +136,8 @@ export default function ActivitiesPanel() {
               <div className="panel__list-item-content">
                 <span className="panel__list-item-name">{activity.name}</span>
                 <div className="panel__list-item-details">
-                  <span>{weekdays.find(d => d.value === activity.day)?.label}</span>
-                  <span>{formatTime(activity.time)}</span>
+                  <span>{['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][activity.day - 1]}</span>
+                  <span>{format(new Date(`2000-01-01T${activity.time}`), 'h:mm a')}</span>
                   <span>{activity.location}</span>
                 </div>
               </div>

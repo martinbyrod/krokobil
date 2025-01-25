@@ -9,11 +9,14 @@ export async function getActivities() {
 
 export async function getActivityInstances(startDate, endDate) {
   const response = await fetch(
-    `http://localhost:3001/api/activities?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`
+    `http://localhost:3001/api/activity-instances?start_date=${startDate.toISOString().split('T')[0]}&end_date=${endDate.toISOString().split('T')[0]}`,
+    {
+      cache: 'no-store'
+    }
   );
   
   if (!response.ok) {
-    throw new Error('Failed to fetch activities');
+    throw new Error('Failed to fetch activity instances');
   }
   
   return response.json();

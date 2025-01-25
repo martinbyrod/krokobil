@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import pg from 'pg';
+import { startOfWeek, addDays, format, parseISO } from 'date-fns';
 const { Pool } = pg;
 
 const app = express();
@@ -132,6 +133,62 @@ app.delete('/api/activities/:id', async (req, res) => {
   } catch (err) {
     console.error('Database error:', err);
     res.status(500).json({ error: err.message });
+  }
+});
+
+// Get activity instances with activity details
+app.get('/api/activity-instances', async (req, res) => {
+  const { start_date, end_date } = req.query;
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // First, ensure instances exist for the requested date range
+    const activities = await client.query('SELECT * FROM activities');
+    
+    for (let date = parseISO(start_date); date <= parseISO(end_date); date = addDays(date, 1)) {
+      const dayOfWeek = (date.getDay() + 6) % 7 + 1; // Convert to 1-7 (Mon-Sun)
+      const formattedDate = format(date, 'yyyy-MM-dd');
+      
+      // Find activities that should occur on this day
+      const dayActivities = activities.rows.filter(activity => activity.day === dayOfWeek);
+      
+      for (const activity of dayActivities) {
+        // Simple insert, the unique constraint will prevent duplicates
+        await client.query(`
+          INSERT INTO activity_instances (activity_id, date, is_cancelled)
+          VALUES ($1, $2, false)
+          ON CONFLICT (activity_id, date) DO NOTHING
+        `, [activity.id, formattedDate]);
+      }
+    }
+    
+    // Then fetch all instances for the date range
+    const result = await client.query(`
+      SELECT 
+        ai.id as instance_id,
+        ai.date::date as date,
+        ai.is_cancelled,
+        a.id as activity_id,
+        a.name,
+        a.time,
+        a.location
+      FROM activity_instances ai
+      JOIN activities a ON a.id = ai.activity_id
+      WHERE ai.date BETWEEN $1 AND $2
+      ORDER BY ai.date, a.time
+    `, [start_date, end_date]);
+    
+    await client.query('COMMIT');
+    res.json(result.rows);
+    
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Server Error:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 

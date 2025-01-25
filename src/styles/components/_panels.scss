@@ -15,6 +15,12 @@
     padding-bottom: $spacing-md;
     border-bottom: 1px solid $border-color;
 
+    &-main {
+      display: flex;
+      align-items: center;
+      gap: $spacing-sm;
+    }
+
     h2 {
       font-size: 1.25rem;
       font-weight: 600;
@@ -224,5 +230,10 @@
       background-color: #dc2626;
       color: white;
     }
+  }
+
+  &--small {
+    font-size: 0.875rem;
+    padding: $spacing-xs $spacing-sm;
   }
 } 
