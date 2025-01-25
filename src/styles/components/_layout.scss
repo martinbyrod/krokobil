@@ -7,6 +7,13 @@
     background-color: white;
     border-right: 1px solid $border-color;
     padding: $spacing-md;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+    height: 100vh;
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
   }
   
   &__main {
