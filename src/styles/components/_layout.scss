@@ -1,0 +1,25 @@
+.layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  min-height: 100vh;
+  
+  &__sidebar {
+    background-color: white;
+    border-right: 1px solid $border-color;
+    padding: $spacing-md;
+  }
+  
+  &__main {
+    padding: $spacing-md;
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .layout {
+    grid-template-columns: 1fr;
+    
+    &__sidebar {
+      display: none; // We'll implement a mobile menu later
+    }
+  }
+}

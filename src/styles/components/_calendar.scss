@@ -1,0 +1,154 @@
+.layout {
+  &__main {
+    padding: $spacing-md;
+    max-width: 1800px;
+    margin: 0 auto;
+  }
+}
+
+.calendar {
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  height: calc(100vh - 2rem);
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-lg $spacing-xl;
+    border-bottom: 1px solid $border-color;
+
+    h2 {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: $text-color;
+    }
+
+    button {
+      padding: $spacing-sm $spacing-md;
+      border: 1px solid $border-color;
+      border-radius: 4px;
+      background: white;
+      color: $text-color;
+      cursor: pointer;
+      
+      &:hover {
+        background: $background-color;
+      }
+    }
+  }
+
+  &__date-range {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: $text-color;
+    margin: 0 $spacing-xl;
+  }
+
+  &__nav-button {
+    padding: $spacing-sm $spacing-md;
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    background: white;
+    color: $text-color;
+    cursor: pointer;
+    min-width: 100px;
+    font-size: 1rem;
+    
+    &:hover {
+      background: $background-color;
+    }
+  }
+
+  &__weeks {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    padding: $spacing-md;
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+.calendar-week {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: $spacing-xs;
+  flex: 1;
+}
+
+.calendar-day {
+  min-height: 250px;
+  border: 1px solid $border-color;
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  
+  &__header {
+    padding: $spacing-md;
+    background: $background-color;
+    border-bottom: 1px solid $border-color;
+    border-radius: 4px 4px 0 0;
+  }
+  
+  &__name {
+    font-size: 1rem;
+    font-weight: 500;
+    color: $secondary-color;
+  }
+  
+  &__date {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: $text-color;
+    margin-top: $spacing-xs;
+  }
+  
+  &__content {
+    padding: $spacing-md;
+    flex: 1;
+  }
+}
+
+.calendar-activity {
+  background: #f3f4f6;
+  border-radius: 4px;
+  padding: $spacing-sm;
+  margin-bottom: $spacing-xs;
+  
+  &__name {
+    font-weight: 600;
+    color: $text-color;
+  }
+  
+  &__time {
+    font-size: 0.875rem;
+    color: $secondary-color;
+  }
+  
+  &__location {
+    font-size: 0.875rem;
+    color: $secondary-color;
+    margin-top: 2px;
+  }
+}
+
+@media (max-width: $breakpoint-md) {
+  .calendar-week {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .calendar-day {
+    min-height: 200px;
+  }
+}
+
+@media (max-width: $breakpoint-sm) {
+  .calendar-week {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
