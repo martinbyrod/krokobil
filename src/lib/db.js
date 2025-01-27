@@ -108,4 +108,41 @@ export async function deleteActivity(id) {
     throw new Error('Failed to delete activity');
   }
   return response.json();
+}
+
+export async function assignDrivers(activityInstanceId, driverIds) {
+  console.log('Sending assignment request:', { activityInstanceId, driverIds });
+  
+  const response = await fetch('http://localhost:3001/api/driver-assignments', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ activityInstanceId, driverIds }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    console.error('Assignment failed:', error);
+    throw new Error(error.message || 'Failed to assign drivers');
+  }
+  
+  const result = await response.json();
+  console.log('Assignment successful:', result);
+  return result;
+}
+
+export async function getDriverAssignments(activityInstanceId) {
+  console.log("Getting assignements for", activityInstanceId);
+
+  const response = await fetch(`http://localhost:3001/api/driver-assignments/${activityInstanceId}`);
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to fetch driver assignments');
+  }
+  
+  const result = await response.json();
+
+  return result;
 } 

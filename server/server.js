@@ -140,7 +140,7 @@ app.delete('/api/activities/:id', async (req, res) => {
 app.get('/api/activity-instances', async (req, res) => {
   const { start_date, end_date } = req.query;
   const client = await pool.connect();
-  
+
   try {
     await client.query('BEGIN');
     
@@ -166,27 +166,137 @@ app.get('/api/activity-instances', async (req, res) => {
     
     // Then fetch all instances for the date range
     const result = await client.query(`
+        SELECT 
+          ai.id as instance_id,
+          ai.date::date as date,
+          ai.is_cancelled,
+          a.id as activity_id,
+          a.name,
+          a.time,
+          a.location
+        FROM activity_instances ai
+        JOIN activities a ON a.id = ai.activity_id
+        WHERE ai.date BETWEEN $1 AND $2
+        ORDER BY ai.date, a.time
+      `, [start_date, end_date]);
+    
+    await client.query('COMMIT');
+    res.json(result.rows);
+
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Server Error:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Update the driver assignments endpoint
+app.get('/api/driver-assignments/:id', async (req, res) => {
+  const activityInstanceId = req.params.id;
+  console.log('Received assignment request:', activityInstanceId);
+  
+  //const client = await pool.connect();
+  
+  try {
+    //await client.query('BEGIN');
+    // Fetch the complete assignment data
+    const result = await pool.query(`
       SELECT 
-        ai.id as instance_id,
-        ai.date::date as date,
-        ai.is_cancelled,
-        a.id as activity_id,
-        a.name,
-        a.time,
-        a.location
-      FROM activity_instances ai
-      JOIN activities a ON a.id = ai.activity_id
-      WHERE ai.date BETWEEN $1 AND $2
-      ORDER BY ai.date, a.time
-    `, [start_date, end_date]);
+        da.id as assignment_id,
+        d.id as driver_id,
+        d.family_name,
+        d.seat_capacity
+      FROM driver_assignments da
+      JOIN drivers d ON d.id = da.driver_id
+      WHERE da.activity_instance_id = $1
+    `, [activityInstanceId]);
+    
+    console.log('Final assignments:', result.rows);
+    
+    //await client.query('COMMIT');
+    res.json(result.rows);
+    
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error assigning drivers:', err);
+    res.status(500).json({ 
+      error: err.message,
+      details: {
+        activityInstanceId,
+        driverIds,
+        errorCode: err.code
+      }
+    });
+  } finally {
+    //client.release();
+  }
+});
+
+// Update the driver assignments endpoint
+app.post('/api/driver-assignments', async (req, res) => {
+  const { activityInstanceId, driverIds } = req.body;
+  
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // Log the existing assignments before deletion
+    const existing = await client.query(
+      'SELECT * FROM driver_assignments WHERE activity_instance_id = $1',
+      [activityInstanceId]
+    );
+    console.log('Existing assignments:', existing.rows);
+    
+    // Delete existing assignments
+    await client.query(
+      'DELETE FROM driver_assignments WHERE activity_instance_id = $1',
+      [activityInstanceId]
+    );
+    
+    // Insert new assignments
+    const assignments = [];
+    for (const driverId of driverIds) {
+      console.log('Inserting assignment:', { activityInstanceId, driverId });
+      const result = await client.query(
+        `INSERT INTO driver_assignments (activity_instance_id, driver_id) 
+         VALUES ($1, $2) 
+         RETURNING id`,
+        [activityInstanceId, driverId]
+      );
+      assignments.push(result.rows[0].id);
+    }
+    
+    // Fetch the complete assignment data
+    const result = await client.query(`
+      SELECT 
+        da.id as assignment_id,
+        d.id as driver_id,
+        d.family_name,
+        d.seat_capacity
+      FROM driver_assignments da
+      JOIN drivers d ON d.id = da.driver_id
+      WHERE da.activity_instance_id = $1
+    `, [activityInstanceId]);
+    
+    console.log('Final assignments:', result.rows);
     
     await client.query('COMMIT');
     res.json(result.rows);
     
   } catch (err) {
     await client.query('ROLLBACK');
-    console.error('Server Error:', err);
-    res.status(500).json({ error: err.message });
+    console.error('Error assigning drivers:', err);
+    res.status(500).json({ 
+      error: err.message,
+      details: {
+        activityInstanceId,
+        driverIds,
+        errorCode: err.code
+      }
+    });
   } finally {
     client.release();
   }

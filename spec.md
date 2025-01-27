@@ -53,3 +53,34 @@ Should there be a way to cancel/modify individual instances?
 Should there be a way to handle exceptions (holidays, cancellations)?
 
 All 7 days for the calendar view. It will be enough to simplify see all activities per day with their relevant info displayed. No special handling for time conflicts needed for activites, drivers or kids. Just do not worry about conflicts. No additional attributes for kids needed. We need a simple backend to store data. We can deploy the app on Vercel and use a native serverless Neon postgres solution. It will be enough to just generate one week in advance. Yes it would be great to be able to cancel/modify individual instances. No need to handle holidays and such things.
+
+## Implementation Details
+
+### Component Architecture
+
+The calendar view is built with a hierarchy of components:
+1. `Calendar` - Main container component handling data fetching and date navigation
+2. `CalendarWeek` - Renders a week's worth of days
+3. `ActivityCard` - Displays individual activity instances with their assignments
+4. `AssignDriverModal` - Modal interface for driver assignments
+
+### Data Flow
+- Activity instances are fetched for a two-week period
+- Each activity instance contains:
+  - Basic activity info (name, time, location)
+  - Instance-specific data (date, cancellation status)
+  - Driver assignments (family name, seat capacity)
+  - Kid assignments (per driver)
+
+### Database Structure
+Activities and their instances are stored separately to allow for:
+- Weekly generation of instances
+- Instance-specific modifications
+- Individual cancellations
+- Driver and kid assignments per instance
+
+### UI/UX Patterns
+- Modal-based assignment interface
+- Clear hierarchy of information in activity cards
+- Consistent date and time formatting
+- Loading and error states for all async operations

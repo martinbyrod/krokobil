@@ -1,4 +1,5 @@
 import { addDays, format } from 'date-fns'
+import ActivityCard from './ActivityCard'
 
 export default function CalendarWeek({ startDate, activities }) {
   const days = Array.from({ length: 7 }, (_, i) => addDays(startDate, i))
@@ -19,16 +20,10 @@ export default function CalendarWeek({ startDate, activities }) {
               {dayActivities.length > 0 && (
                 <div className="calendar-day__activities">
                   {dayActivities.map(activity => (
-                    <div 
-                      key={activity.instance_id} 
-                      className={`calendar-activity ${activity.is_cancelled ? 'calendar-activity--cancelled' : ''}`}
-                    >
-                      <div className="calendar-activity__name">{activity.name}</div>
-                      <div className="calendar-activity__time">
-                        {format(new Date(`2000-01-01T${activity.time}`), 'h:mm a')}
-                      </div>
-                      <div className="calendar-activity__location">{activity.location}</div>
-                    </div>
+                    <ActivityCard 
+                      key={activity.instance_id}
+                      activity={activity}
+                    />
                   ))}
                 </div>
               )}

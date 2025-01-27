@@ -193,6 +193,80 @@
     color: $secondary-color;
     margin-top: 2px;
   }
+
+  &__drivers {
+    margin-top: $spacing-md;
+    padding-top: $spacing-sm;
+    border-top: 1px solid $border-color;
+    
+    h4 {
+      margin: 0 0 $spacing-sm;
+      font-size: 0.875rem;
+      font-weight: 500;
+    }
+  }
+  
+  &__empty-state {
+    color: $secondary-color;
+    font-size: 0.875rem;
+    margin-bottom: $spacing-sm;
+  }
+}
+
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  
+  &__content {
+    background: white;
+    padding: $spacing-lg;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+  }
+  
+  &__activity-info {
+    margin: $spacing-md 0;
+    padding: $spacing-sm;
+    background: $background-color;
+    border-radius: 4px;
+  }
+  
+  &__drivers-list {
+    margin: $spacing-md 0;
+    max-height: 300px;
+    overflow-y: auto;
+    
+    .checkbox {
+      display: flex;
+      align-items: center;
+      padding: $spacing-sm;
+      cursor: pointer;
+      
+      &:hover {
+        background: $background-color;
+      }
+      
+      input {
+        margin-right: $spacing-sm;
+      }
+    }
+  }
+  
+  &__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-sm;
+    margin-top: $spacing-lg;
+  }
 }
 
 @media (max-width: $breakpoint-md) {
