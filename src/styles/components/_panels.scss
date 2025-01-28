@@ -2,17 +2,17 @@
   background: white;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: $spacing-md;
+  padding: $spacing-sm;
   height: 100%;
   display: flex;
   flex-direction: column;
-  gap: $spacing-md;
+  gap: $spacing-sm;
 
   &__header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding-bottom: $spacing-md;
+    padding-bottom: $spacing-sm;
     border-bottom: 1px solid $border-color;
 
     &-main {
@@ -59,14 +59,14 @@
   &__list {
     display: flex;
     flex-direction: column;
-    gap: $spacing-sm;
+    gap: $spacing-xs;
     overflow-y: auto;
     max-height: 400px;
   }
 
   &__list-item {
     position: relative;
-    padding: $spacing-sm;
+    padding: $spacing-xs;
     border: 1px solid $border-color;
     border-radius: 4px;
 

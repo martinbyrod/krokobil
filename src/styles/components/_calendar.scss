@@ -19,7 +19,7 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: $spacing-lg $spacing-xl;
+    padding: $spacing-sm;
     border-bottom: 1px solid $border-color;
 
     h2 {
@@ -49,6 +49,13 @@
     margin: 0 $spacing-xl;
   }
 
+  &__nav {
+    display: flex;
+    gap: $spacing-sm;
+    align-items: center;
+    font-size: 0.875rem;
+  }
+
   &__nav-button {
     padding: $spacing-sm $spacing-md;
     border: 1px solid $border-color;
@@ -67,7 +74,7 @@
   &__weeks {
     display: flex;
     flex-direction: column;
-    gap: $spacing-sm;
+    gap: $spacing-xs;
     padding: $spacing-md;
     flex: 1;
     min-height: 0;
@@ -137,47 +144,53 @@
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: $spacing-xs;
+  padding: 0 $spacing-xs;
   flex: 1;
 }
 
 .calendar-day {
-  min-height: 250px;
+  min-height: 100px;
   border: 1px solid $border-color;
   border-radius: 4px;
   display: flex;
   flex-direction: column;
   
   &__header {
-    padding: $spacing-md;
+    padding: $spacing-xs;
     background: $background-color;
     border-bottom: 1px solid $border-color;
     border-radius: 4px 4px 0 0;
+    height: 48px;
   }
   
   &__name {
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: 0.75rem;
     color: $secondary-color;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
   
   &__date {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: $text-color;
-    margin-top: $spacing-xs;
+    font-size: 0.875rem;
+    font-weight: 500;
   }
   
   &__content {
-    padding: $spacing-md;
+    padding: $spacing-xs;
     flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
   }
 }
 
 .calendar-activity {
   background: #f3f4f6;
   border-radius: 4px;
-  padding: $spacing-sm;
+  padding: $spacing-xs;
+  border: 1px solid $border-color;
   margin-bottom: $spacing-xs;
+  font-size: 0.875rem;
   
   &__header {
     display: flex;
