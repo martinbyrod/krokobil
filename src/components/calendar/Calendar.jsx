@@ -10,38 +10,33 @@ export default function Calendar() {
   
   useEffect(() => {
     const fetchActivities = async () => {
-      try {
-        setIsLoading(true)
-        const endDate = addDays(startDate, 13)
-        console.log('Fetching activities for:', {
-          startDate: format(startDate, 'yyyy-MM-dd'),
-          endDate: format(endDate, 'yyyy-MM-dd')
-        })
-        const instances = await getActivityInstances(startDate, endDate)
-        console.log('Raw instances from server:', instances)
-        setActivities(instances)
-      } catch (error) {
-        console.error('Error fetching activities:', error)
-      } finally {
-        setIsLoading(false)
-      }
+      const endDate = addDays(startDate, 13)
+      const instances = await getActivityInstances(startDate, endDate)
+      setActivities(instances)
+      setIsLoading(false)
     }
     
     fetchActivities()
   }, [startDate])
 
-  const nextWeek = () => {
-    setStartDate(date => addWeeks(date, 1))
+  const nextWeek = async () => {
+    const newDate = addWeeks(startDate, 1)
+    const endDate = addDays(newDate, 13)
+    const instances = await getActivityInstances(newDate, endDate)
+    setActivities(instances)
+    setStartDate(newDate)
   }
 
-  const previousWeek = () => {
-    setStartDate(date => addWeeks(date, -1))
+  const previousWeek = async () => {
+    const newDate = addWeeks(startDate, -1)
+    const endDate = addDays(newDate, 13)
+    const instances = await getActivityInstances(newDate, endDate)
+    setActivities(instances)
+    setStartDate(newDate)
   }
 
-  // Group activities by date, handling the date format from the server
   const activitiesByDate = activities.reduce((acc, activity) => {
     const dateKey = format(new Date(activity.date), 'yyyy-MM-dd')
-    console.log('Processing activity:', { activity, dateKey })
     if (!acc[dateKey]) {
       acc[dateKey] = []
     }
@@ -52,26 +47,40 @@ export default function Calendar() {
     return acc
   }, {})
 
-  console.log('Final activitiesByDate:', activitiesByDate)
+  if (isLoading) {
+    return <div className="calendar__loading">Loading activities...</div>
+  }
 
   return (
     <div className="calendar">
       <div className="calendar__header">
-        <button className="calendar__nav-button" onClick={previousWeek}>&larr; Previous</button>
+        <button 
+          className="calendar__nav-button" 
+          onClick={previousWeek}
+        >
+          &larr; Previous
+        </button>
         <h2 className="calendar__date-range">
           {format(startDate, 'MMMM d')} - {format(addDays(startDate, 13), 'MMMM d, yyyy')}
         </h2>
-        <button className="calendar__nav-button" onClick={nextWeek}>Next &rarr;</button>
+        <button 
+          className="calendar__nav-button" 
+          onClick={nextWeek}
+        >
+          Next &rarr;
+        </button>
       </div>
       
-      {isLoading ? (
-        <div className="calendar__loading">Loading activities...</div>
-      ) : (
-        <div className="calendar__weeks">
-          <CalendarWeek startDate={startDate} activities={activitiesByDate} />
-          <CalendarWeek startDate={addWeeks(startDate, 1)} activities={activitiesByDate} />
-        </div>
-      )}
+      <div className="calendar__weeks">
+        <CalendarWeek 
+          startDate={startDate} 
+          activities={activitiesByDate}
+        />
+        <CalendarWeek 
+          startDate={addWeeks(startDate, 1)} 
+          activities={activitiesByDate}
+        />
+      </div>
     </div>
   )
 } 

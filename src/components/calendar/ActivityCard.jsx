@@ -10,8 +10,6 @@ export default function ActivityCard({ activity }) {
   const [selectedDriver, setSelectedDriver] = useState(null)
   const [assignments, setAssignments] = useState([])
   const [kidAssignments, setKidAssignments] = useState({})
-  const [isLoading, setIsLoading] = useState(true)
-  const [error, setError] = useState(null)
   
   const activityDate = parseISO(activity.date)
   const activityTime = activity.time ? new Date(`2000-01-01T${activity.time}`) : null
@@ -24,8 +22,6 @@ export default function ActivityCard({ activity }) {
   
   async function loadAssignments() {
     try {
-      setIsLoading(true)
-      setError(null)
       const [driverData, kidData] = await Promise.all([
         getDriverAssignments(activity.instance_id),
         getKidAssignments(activity.instance_id)
@@ -43,9 +39,6 @@ export default function ActivityCard({ activity }) {
       setKidAssignments(kidsByDriver)
     } catch (error) {
       console.error('Failed to load assignments:', error)
-      setError(error.message)
-    } finally {
-      setIsLoading(false)
     }
   }
   
@@ -67,45 +60,32 @@ export default function ActivityCard({ activity }) {
       </div>
       <div className="calendar-activity__location">{activity.location}</div>
       
-      <div className="calendar-activity__debug" style={{ fontSize: '10px', color: '#666' }}>
-        Instance ID: {activity.instance_id}
-        <br />
-        Date: {format(activityDate, 'yyyy-MM-dd')}
-      </div>
-      
       <div className="calendar-activity__drivers">
-        {error && (
-          <div className="calendar-activity__error">{error}</div>
-        )}
-        {isLoading ? (
-          <div className="calendar-activity__loading">Loading...</div>
-        ) : (
-          <div className="calendar-activity__driver-list">
-            {assignments.map(driver => (
-              <div key={driver.assignment_id} className="calendar-activity__driver-box">
-                <div className="calendar-activity__driver-header">
-                  <span>{driver.family_name}</span>
-                  <button 
-                    className="button button--add"
-                    onClick={() => {
-                      setSelectedDriver(driver)
-                      setIsAssigningKids(true)
-                    }}
-                  >
-                    +
-                  </button>
-                </div>
-                <div className="calendar-activity__kids-list">
-                  {(kidAssignments[driver.assignment_id] || []).map(kid => (
-                    <div key={kid.id} className="calendar-activity__kid">
-                      {kid.name}
-                    </div>
-                  ))}
-                </div>
+        <div className="calendar-activity__driver-list">
+          {assignments.map(driver => (
+            <div key={driver.assignment_id} className="calendar-activity__driver-box">
+              <div className="calendar-activity__driver-header">
+                <span>{driver.family_name}</span>
+                <button 
+                  className="button button--add"
+                  onClick={() => {
+                    setSelectedDriver(driver)
+                    setIsAssigningKids(true)
+                  }}
+                >
+                  +
+                </button>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="calendar-activity__kids-list">
+                {(kidAssignments[driver.assignment_id] || []).map(kid => (
+                  <div key={kid.id} className="calendar-activity__kid">
+                    {kid.name}
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
 
       {isAssigningDrivers && (

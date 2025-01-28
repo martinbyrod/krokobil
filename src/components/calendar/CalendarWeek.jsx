@@ -17,16 +17,12 @@ export default function CalendarWeek({ startDate, activities }) {
               <div className="calendar-day__date">{format(day, 'd')}</div>
             </div>
             <div className="calendar-day__content">
-              {dayActivities.length > 0 && (
-                <div className="calendar-day__activities">
-                  {dayActivities.map(activity => (
-                    <ActivityCard 
-                      key={activity.instance_id}
-                      activity={activity}
-                    />
-                  ))}
-                </div>
-              )}
+              {dayActivities.map(activity => (
+                <ActivityCard 
+                  key={activity.instance_id}
+                  activity={activity}
+                />
+              ))}
             </div>
           </div>
         )
