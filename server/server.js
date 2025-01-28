@@ -302,6 +302,79 @@ app.post('/api/driver-assignments', async (req, res) => {
   }
 });
 
+// Get kid assignments for an activity instance
+app.get('/api/kid-assignments/:activityInstanceId', async (req, res) => {
+  const { activityInstanceId } = req.params;
+  
+  try {
+    const result = await pool.query(`
+      SELECT 
+        ka.id,
+        ka.driver_assignment_id,
+        k.id as kid_id,
+        k.name
+      FROM kid_assignments ka
+      JOIN kids k ON k.id = ka.kid_id
+      JOIN driver_assignments da ON da.id = ka.driver_assignment_id
+      WHERE da.activity_instance_id = $1
+    `, [activityInstanceId]);
+    
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error fetching kid assignments:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Assign kids to drivers
+app.post('/api/kid-assignments', async (req, res) => {
+  const { assignments } = req.body; // array of { driver_assignment_id, kid_ids }
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // Delete existing assignments for these driver assignments
+    const driverAssignmentIds = assignments.map(a => a.driver_assignment_id);
+    await client.query(
+      'DELETE FROM kid_assignments WHERE driver_assignment_id = ANY($1)',
+      [driverAssignmentIds]
+    );
+    
+    // Insert new assignments
+    for (const { driver_assignment_id, kid_ids } of assignments) {
+      for (const kid_id of kid_ids) {
+        await client.query(
+          'INSERT INTO kid_assignments (driver_assignment_id, kid_id) VALUES ($1, $2)',
+          [driver_assignment_id, kid_id]
+        );
+      }
+    }
+    
+    // Fetch updated assignments
+    const result = await client.query(`
+      SELECT 
+        ka.id,
+        ka.driver_assignment_id,
+        k.id as kid_id,
+        k.name as kid_name
+      FROM kid_assignments ka
+      JOIN kids k ON k.id = ka.kid_id
+      JOIN driver_assignments da ON da.id = ka.driver_assignment_id
+      WHERE da.activity_instance_id = $1
+    `, [assignments[0].activity_instance_id]);
+    
+    await client.query('COMMIT');
+    res.json(result.rows);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error assigning kids:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 }); 

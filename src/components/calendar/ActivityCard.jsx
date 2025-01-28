@@ -1,13 +1,20 @@
 import { useState, useEffect } from 'react'
 import { format, parseISO } from 'date-fns'
-import { getDriverAssignments } from '../../lib/db'
+import { getDriverAssignments, getKidAssignments } from '../../lib/db'
 import AssignDriverModal from './AssignDriverModal'
+import AssignKidsModal from './AssignKidsModal'
 
 export default function ActivityCard({ activity }) {
-  const [isAssigning, setIsAssigning] = useState(false)
+  const [isAssigningDrivers, setIsAssigningDrivers] = useState(false)
+  const [isAssigningKids, setIsAssigningKids] = useState(false)
+  const [selectedDriver, setSelectedDriver] = useState(null)
   const [assignments, setAssignments] = useState([])
+  const [kidAssignments, setKidAssignments] = useState({})
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  
+  const activityDate = parseISO(activity.date)
+  const activityTime = activity.time ? new Date(`2000-01-01T${activity.time}`) : null
   
   useEffect(() => {
     if (activity.instance_id) {
@@ -17,12 +24,23 @@ export default function ActivityCard({ activity }) {
   
   async function loadAssignments() {
     try {
-      console.log('Loading assignments for activity:', activity)
       setIsLoading(true)
       setError(null)
-      const data = await getDriverAssignments(activity.instance_id)
-      console.log('Received assignments:', data)
-      setAssignments(data)
+      const [driverData, kidData] = await Promise.all([
+        getDriverAssignments(activity.instance_id),
+        getKidAssignments(activity.instance_id)
+      ])
+      
+      const kidsByDriver = kidData.reduce((acc, assignment) => {
+        if (!acc[assignment.driver_assignment_id]) {
+          acc[assignment.driver_assignment_id] = []
+        }
+        acc[assignment.driver_assignment_id].push(assignment)
+        return acc
+      }, {})
+      
+      setAssignments(driverData)
+      setKidAssignments(kidsByDriver)
     } catch (error) {
       console.error('Failed to load assignments:', error)
       setError(error.message)
@@ -31,19 +49,21 @@ export default function ActivityCard({ activity }) {
     }
   }
   
-  const totalSeats = assignments.reduce((sum, driver) => sum + driver.seat_capacity, 0)
-  
-  // Parse the date properly
-  const activityDate = parseISO(activity.date)
-  const activityTime = activity.time ? new Date(`2000-01-01T${activity.time}`) : null
-  
   return (
     <div className="calendar-activity">
       <div className="calendar-activity__header">
-        <div className="calendar-activity__name">{activity.name}</div>
-        <div className="calendar-activity__time">
-          {activityTime ? format(activityTime, 'h:mm a') : 'No time set'}
+        <div className="calendar-activity__title">
+          <div className="calendar-activity__name">{activity.name}</div>
+          <div className="calendar-activity__time">
+            {activityTime ? format(activityTime, 'h:mm a') : 'No time set'}
+          </div>
         </div>
+        <button 
+          className="button button--add"
+          onClick={() => setIsAssigningDrivers(true)}
+        >
+          +
+        </button>
       </div>
       <div className="calendar-activity__location">{activity.location}</div>
       
@@ -54,51 +74,58 @@ export default function ActivityCard({ activity }) {
       </div>
       
       <div className="calendar-activity__drivers">
-        <h4>Drivers & Passengers:</h4>
         {error && (
-          <div className="calendar-activity__error" style={{ color: 'red' }}>
-            {error}
-          </div>
+          <div className="calendar-activity__error">{error}</div>
         )}
         {isLoading ? (
           <div className="calendar-activity__loading">Loading...</div>
-        ) : assignments.length > 0 ? (
-          <>
-            <div className="calendar-activity__assignments">
-              {assignments.map(driver => (
-                <div key={driver.assignment_id} className="calendar-activity__driver">
-                  <div className="calendar-activity__driver-name">
-                    {driver.family_name} ({driver.seat_capacity} seats)
-                  </div>
-                  {/* We'll add kids here later */}
-                  <div className="calendar-activity__seats-available">
-                    {driver.seat_capacity} seats available
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="calendar-activity__summary">
-              Total capacity: {totalSeats} seats
-            </div>
-          </>
         ) : (
-          <div className="calendar-activity__empty-state">
-            No drivers assigned
+          <div className="calendar-activity__driver-list">
+            {assignments.map(driver => (
+              <div key={driver.assignment_id} className="calendar-activity__driver-box">
+                <div className="calendar-activity__driver-header">
+                  <span>{driver.family_name}</span>
+                  <button 
+                    className="button button--add"
+                    onClick={() => {
+                      setSelectedDriver(driver)
+                      setIsAssigningKids(true)
+                    }}
+                  >
+                    +
+                  </button>
+                </div>
+                <div className="calendar-activity__kids-list">
+                  {(kidAssignments[driver.assignment_id] || []).map(kid => (
+                    <div key={kid.id} className="calendar-activity__kid">
+                      {kid.name}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
-        <button 
-          className="button button--secondary"
-          onClick={() => setIsAssigning(true)}
-        >
-          {assignments.length > 0 ? 'Edit Drivers' : 'Assign Drivers'}
-        </button>
       </div>
 
-      {isAssigning && (
+      {isAssigningDrivers && (
         <AssignDriverModal
           activity={activity}
           currentAssignments={assignments}
-          onClose={() => setIsAssigning(false)}
+          onClose={() => setIsAssigningDrivers(false)}
+          onAssigned={loadAssignments}
+        />
+      )}
+      
+      {isAssigningKids && selectedDriver && (
+        <AssignKidsModal
+          activity={activity}
+          driver={selectedDriver}
+          currentAssignments={kidAssignments[selectedDriver.assignment_id] || []}
+          onClose={() => {
+            setIsAssigningKids(false)
+            setSelectedDriver(null)
+          }}
           onAssigned={loadAssignments}
         />
       )}

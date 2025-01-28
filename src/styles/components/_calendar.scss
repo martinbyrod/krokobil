@@ -113,6 +113,7 @@
     &-header {
       display: flex;
       justify-content: space-between;
+      align-items: flex-start;
       margin-bottom: $spacing-xs;
     }
 
@@ -178,38 +179,73 @@
   padding: $spacing-sm;
   margin-bottom: $spacing-xs;
   
-  &__name {
-    font-weight: 600;
-    color: $text-color;
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: $spacing-xs;
   }
   
-  &__time {
-    font-size: 0.875rem;
-    color: $secondary-color;
+  &__title {
+    flex: 1;
   }
   
-  &__location {
-    font-size: 0.875rem;
-    color: $secondary-color;
-    margin-top: 2px;
+  &__driver-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-xs;
+    margin-top: $spacing-xs;
   }
-
-  &__drivers {
-    margin-top: $spacing-md;
-    padding-top: $spacing-sm;
-    border-top: 1px solid $border-color;
+  
+  &__driver-box {
+    background: $background-color;
+    border: 1px solid $border-color;
+    border-radius: 4px;
+    padding: $spacing-xs;
+    min-width: 120px;
+  }
+  
+  &__driver-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-xxs;
     
-    h4 {
-      margin: 0 0 $spacing-sm;
-      font-size: 0.875rem;
+    span {
       font-weight: 500;
     }
   }
   
+  &__kids-list {
+    font-size: 0.875rem;
+  }
+  
+  &__kid {
+    color: $text-color;
+    margin: $spacing-xxs 0;
+  }
+
   &__empty-state {
     color: $secondary-color;
     font-size: 0.875rem;
     margin-bottom: $spacing-sm;
+  }
+
+  &__passengers {
+    margin: $spacing-xs 0;
+    padding-left: $spacing-sm;
+    font-size: 0.875rem;
+  }
+  
+  &__passenger {
+    color: $text-color;
+    margin: $spacing-xxs 0;
+  }
+  
+  &__actions {
+    display: flex;
+    gap: $spacing-sm;
+    margin-top: $spacing-sm;
   }
 }
 
@@ -266,6 +302,33 @@
     justify-content: flex-end;
     gap: $spacing-sm;
     margin-top: $spacing-lg;
+  }
+
+  &__driver-section {
+    margin: $spacing-md 0;
+    padding: $spacing-sm;
+    background: $background-color;
+    border-radius: 4px;
+    
+    h3 {
+      margin: 0 0 $spacing-sm;
+      font-size: 1rem;
+      font-weight: 500;
+    }
+  }
+  
+  &__kids-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: $spacing-sm;
+  }
+  
+  &__error {
+    margin: $spacing-sm 0;
+    padding: $spacing-sm;
+    color: $error-color;
+    background: lighten($error-color, 45%);
+    border-radius: 4px;
   }
 }
 

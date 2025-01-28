@@ -27,28 +27,6 @@
       color: $text-color;
       margin: 0;
     }
-
-    .button--add {
-      width: 24px;
-      height: 24px;
-      padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 18px;
-      line-height: 0;
-      border-radius: 50%;
-      background: none;
-      border: 1px solid $border-color;
-      color: $secondary-color;
-      transform: translateY(-1px);
-
-      &:hover {
-        background-color: $primary-color;
-        border-color: $primary-color;
-        color: white;
-      }
-    }
   }
 
   &__form {
@@ -191,49 +169,5 @@
       outline: none;
       border-color: $primary-color;
     }
-  }
-}
-
-.button {
-  padding: $spacing-sm $spacing-md;
-  border-radius: 4px;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-
-  &--primary {
-    background-color: $primary-color;
-    color: white;
-    border: none;
-
-    &:hover {
-      background-color: darken($primary-color, 10%);
-    }
-  }
-
-  &--secondary {
-    background-color: white;
-    color: $text-color;
-    border: 1px solid $border-color;
-
-    &:hover {
-      background-color: $background-color;
-    }
-  }
-
-  &--danger {
-    background-color: white;
-    color: #dc2626;
-    border: 1px solid #dc2626;
-
-    &:hover {
-      background-color: #dc2626;
-      color: white;
-    }
-  }
-
-  &--small {
-    font-size: 0.875rem;
-    padding: $spacing-xs $spacing-sm;
   }
 } 

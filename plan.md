@@ -45,15 +45,15 @@
 
 ### Calendar Features
 - [x] Display activities per day
-- [ ] Driver assignment interface
-- [ ] Kid assignment interface
+- [x] Driver assignment interface
+- [x] Kid assignment interface
 - [ ] Activity instance modification/cancellation
 - [x] Week navigation (previous/next)
 
 ## 5. State Management
-- [ ] Set up data fetching and caching
+- [x] Set up data fetching and caching
 - [ ] Implement real-time updates
-- [ ] Handle optimistic updates
+- [x] Handle optimistic updates
 
 ## 6. UI/UX Refinements
 - [x] Responsive design implementation
