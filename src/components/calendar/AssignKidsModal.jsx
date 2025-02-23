@@ -4,7 +4,7 @@ import { getKids, assignKids } from '../../lib/db'
 
 export default function AssignKidsModal({ 
   activity, 
-  driverAssignments, 
+  driver, 
   currentAssignments, 
   onClose, 
   onAssigned 
@@ -22,11 +22,9 @@ export default function AssignKidsModal({
         setKids(allKids)
         
         // Initialize assignments from current state
-        const initialAssignments = {}
-        driverAssignments.forEach(driver => {
-          const currentKids = currentAssignments[driver.assignment_id] || []
-          initialAssignments[driver.assignment_id] = currentKids.map(k => k.kid_id)
-        })
+        const initialAssignments = {
+          [driver.assignment_id]: currentAssignments.map(k => k.kid_id)
+        }
         setAssignments(initialAssignments)
       } catch (error) {
         console.error('Failed to load kids:', error)
@@ -44,13 +42,11 @@ export default function AssignKidsModal({
       setIsSaving(true)
       setError(null)
       
-      const assignmentArray = Object.entries(assignments).map(
-        ([driver_assignment_id, kid_ids]) => ({
-          driver_assignment_id: parseInt(driver_assignment_id),
-          kid_ids,
-          activity_instance_id: activity.instance_id
-        })
-      )
+      const assignmentArray = [{
+        driver_assignment_id: driver.assignment_id,
+        kid_ids: assignments[driver.assignment_id] || [],
+        activity_instance_id: activity.instance_id
+      }]
       
       await assignKids(assignmentArray)
       onAssigned()
@@ -62,21 +58,15 @@ export default function AssignKidsModal({
     }
   }
   
-  const handleKidAssignment = (driverAssignmentId, kidId, isAssigned) => {
+  const handleKidAssignment = (kidId, isAssigned) => {
     setAssignments(prev => {
       const newAssignments = { ...prev }
+      const currentKids = newAssignments[driver.assignment_id] || []
       
-      // Remove kid from any existing assignment
-      Object.keys(newAssignments).forEach(driverId => {
-        newAssignments[driverId] = newAssignments[driverId].filter(id => id !== kidId)
-      })
-      
-      // Add to new assignment if checked
       if (isAssigned) {
-        if (!newAssignments[driverAssignmentId]) {
-          newAssignments[driverAssignmentId] = []
-        }
-        newAssignments[driverAssignmentId].push(kidId)
+        newAssignments[driver.assignment_id] = [...currentKids, kidId]
+      } else {
+        newAssignments[driver.assignment_id] = currentKids.filter(id => id !== kidId)
       }
       
       return newAssignments
@@ -86,7 +76,7 @@ export default function AssignKidsModal({
   return (
     <div className="modal">
       <div className="modal__content">
-        <h2>Assign Kids to Drivers</h2>
+        <h2>Assign Kids to {driver.family_name}</h2>
         <div className="modal__activity-info">
           <div>{activity.name}</div>
           <div>{format(new Date(activity.date), 'EEE, MMM d')}</div>
@@ -101,36 +91,28 @@ export default function AssignKidsModal({
           <div>Loading kids...</div>
         ) : (
           <div className="modal__assignments">
-            {driverAssignments.map(driver => {
-              const assignedKids = assignments[driver.assignment_id] || []
-              const availableSeats = driver.seat_capacity - assignedKids.length
-              
-              return (
-                <div key={driver.assignment_id} className="modal__driver-section">
-                  <h3>{driver.family_name} ({availableSeats} seats available)</h3>
-                  <div className="modal__kids-list">
-                    {kids.map(kid => (
-                      <label key={kid.id} className="checkbox">
-                        <input
-                          type="checkbox"
-                          checked={assignedKids.includes(kid.id)}
-                          disabled={
-                            availableSeats === 0 && 
-                            !assignedKids.includes(kid.id)
-                          }
-                          onChange={(e) => handleKidAssignment(
-                            driver.assignment_id, 
-                            kid.id, 
-                            e.target.checked
-                          )}
-                        />
-                        <span>{kid.name}</span>
-                      </label>
-                    ))}
-                  </div>
-                </div>
-              )
-            })}
+            <div className="modal__driver-section">
+              <h3>{driver.family_name} ({driver.seat_capacity - (assignments[driver.assignment_id] || []).length} seats available)</h3>
+              <div className="modal__kids-list">
+                {kids.map(kid => (
+                  <label key={kid.id} className="checkbox">
+                    <input
+                      type="checkbox"
+                      checked={(assignments[driver.assignment_id] || []).includes(kid.id)}
+                      disabled={
+                        driver.seat_capacity === (assignments[driver.assignment_id] || []).length && 
+                        !(assignments[driver.assignment_id] || []).includes(kid.id)
+                      }
+                      onChange={(e) => handleKidAssignment(
+                        kid.id, 
+                        e.target.checked
+                      )}
+                    />
+                    <span>{kid.name}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
           </div>
         )}
         

@@ -1,9 +1,27 @@
 .button {
   padding: $spacing-sm $spacing-md;
-  border-radius: 4px;
+  border-radius: 2px;
   font-weight: 500;
   cursor: pointer;
   transition: all 0.2s;
+  background: $card-background;
+  color: $text-color;
+  border: 2px solid $border-color;
+
+  &--nav {
+    background: $card-background;
+    color: $text-color;
+    border: 2px solid $border-color;
+    padding: $spacing-xs $spacing-sm;
+    font-family: 'Courier New', monospace;
+    
+    &:hover {
+      background: $accent-color;
+      border-color: $accent-color;
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 4px 0 $accent-secondary;
+    }
+  }
 
   &--primary {
     background-color: $primary-color;

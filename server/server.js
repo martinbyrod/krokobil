@@ -237,40 +237,63 @@ app.get('/api/driver-assignments/:id', async (req, res) => {
 // Update the driver assignments endpoint
 app.post('/api/driver-assignments', async (req, res) => {
   const { activityInstanceId, driverIds } = req.body;
-  
   const client = await pool.connect();
   
   try {
     await client.query('BEGIN');
     
-    // Log the existing assignments before deletion
-    const existing = await client.query(
-      'SELECT * FROM driver_assignments WHERE activity_instance_id = $1',
-      [activityInstanceId]
-    );
-    console.log('Existing assignments:', existing.rows);
-    
-    // Delete existing assignments
-    await client.query(
-      'DELETE FROM driver_assignments WHERE activity_instance_id = $1',
-      [activityInstanceId]
-    );
-    
-    // Insert new assignments
-    const assignments = [];
-    for (const driverId of driverIds) {
-      console.log('Inserting assignment:', { activityInstanceId, driverId });
-      const result = await client.query(
-        `INSERT INTO driver_assignments (activity_instance_id, driver_id) 
-         VALUES ($1, $2) 
-         RETURNING id`,
+    // Get existing assignments to compare
+    const { rows: existingAssignments } = await client.query(`
+      SELECT 
+        da.id as assignment_id,
+        da.driver_id,
+        d.family_name,
+        d.seat_capacity
+      FROM driver_assignments da
+      JOIN drivers d ON d.id = da.driver_id
+      WHERE da.activity_instance_id = $1
+    `, [activityInstanceId]);
+
+    const existingDriverIds = existingAssignments.map(a => a.driver_id);
+    const driversToRemove = existingDriverIds.filter(id => !driverIds.includes(id));
+    const driversToAdd = driverIds.filter(id => !existingDriverIds.includes(id));
+
+    // If nothing changed, just return existing assignments
+    if (driversToRemove.length === 0 && driversToAdd.length === 0) {
+      res.json(existingAssignments);
+      await client.query('COMMIT');
+      return;
+    }
+
+    // Delete kid assignments only for drivers being removed
+    if (driversToRemove.length > 0) {
+      await client.query(`
+        DELETE FROM kid_assignments 
+        WHERE driver_assignment_id IN (
+          SELECT id FROM driver_assignments 
+          WHERE activity_instance_id = $1 
+          AND driver_id = ANY($2)
+        )
+      `, [activityInstanceId, driversToRemove]);
+
+      // Remove driver assignments for removed drivers
+      await client.query(`
+        DELETE FROM driver_assignments 
+        WHERE activity_instance_id = $1 
+        AND driver_id = ANY($2)
+      `, [activityInstanceId, driversToRemove]);
+    }
+
+    // Add new driver assignments
+    for (const driverId of driversToAdd) {
+      await client.query(
+        'INSERT INTO driver_assignments (activity_instance_id, driver_id) VALUES ($1, $2)',
         [activityInstanceId, driverId]
       );
-      assignments.push(result.rows[0].id);
     }
     
-    // Fetch the complete assignment data
-    const result = await client.query(`
+    // Fetch and return the final state
+    const { rows: finalAssignments } = await client.query(`
       SELECT 
         da.id as assignment_id,
         d.id as driver_id,
@@ -279,24 +302,16 @@ app.post('/api/driver-assignments', async (req, res) => {
       FROM driver_assignments da
       JOIN drivers d ON d.id = da.driver_id
       WHERE da.activity_instance_id = $1
+      ORDER BY d.family_name
     `, [activityInstanceId]);
     
-    console.log('Final assignments:', result.rows);
-    
     await client.query('COMMIT');
-    res.json(result.rows);
+    res.json(finalAssignments);
     
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Error assigning drivers:', err);
-    res.status(500).json({ 
-      error: err.message,
-      details: {
-        activityInstanceId,
-        driverIds,
-        errorCode: err.code
-      }
-    });
+    res.status(500).json({ error: err.message });
   } finally {
     client.release();
   }

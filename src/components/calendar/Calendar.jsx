@@ -55,7 +55,7 @@ export default function Calendar() {
     <div className="calendar">
       <div className="calendar__header">
         <button 
-          className="calendar__nav-button" 
+          className="button button--nav" 
           onClick={previousWeek}
         >
           &larr; Previous
@@ -64,7 +64,7 @@ export default function Calendar() {
           {format(startDate, 'MMMM d')} - {format(addDays(startDate, 13), 'MMMM d, yyyy')}
         </h2>
         <button 
-          className="calendar__nav-button" 
+          className="button button--nav" 
           onClick={nextWeek}
         >
           Next &rarr;

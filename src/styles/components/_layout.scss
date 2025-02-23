@@ -7,23 +7,16 @@
   background: $background-color;
   
   &__sidebar {
-    background-color: white;
-    border-right: 1px solid $border-color;
-    padding: $spacing-md;
     display: flex;
     flex-direction: column;
     gap: $spacing-sm;
-    height: 100vh;
-    overflow-y: auto;
-    position: sticky;
-    top: 0;
   }
   
   &__main {
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: $spacing-md;
+    background: $panel-background;
+    border-radius: 2px;
+    border: 2px solid $border-color;
+    box-shadow: 4px 4px 0 $accent-color;
   }
 }
 

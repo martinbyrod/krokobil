@@ -7,7 +7,7 @@
 }
 
 .calendar {
-  background-color: white;
+  background: $panel-background;
   border-radius: 8px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   height: calc(100vh - 2rem);
@@ -17,34 +17,20 @@
   
   &__header {
     padding: $spacing-xs;
-    border-bottom: 1px solid $border-color;
+    border-bottom: 2px solid $border-color;
     min-height: 32px;
     display: grid;
     grid-template-columns: 200px 1fr 200px;
     align-items: center;
+    background: $gradient-dark;
 
     h2 {
       font-size: 1.25rem;
       font-weight: 600;
       color: $text-color;
-    }
-
-    button {
-      padding: $spacing-sm $spacing-md;
-      border: 1px solid $border-color;
-      border-radius: 4px;
-      background: white;
-      color: $text-color;
-      cursor: pointer;
-      
-      &:hover {
-        background: $background-color;
-      }
-    }
-
-    transition: opacity 0.2s ease;
-    &.is-navigating {
-      opacity: 0.7;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
   }
 
@@ -59,26 +45,6 @@
     gap: $spacing-sm;
     align-items: center;
     font-size: 0.875rem;
-  }
-
-  &__nav-button {
-    padding: $spacing-sm $spacing-md;
-    border: 1px solid $border-color;
-    border-radius: 4px;
-    background: white;
-    color: $text-color;
-    cursor: pointer;
-    min-width: 100px;
-    font-size: 1rem;
-    
-    &:hover {
-      background: $background-color;
-    }
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
   }
 
   &__weeks {
@@ -160,24 +126,27 @@
 
 .calendar-day {
   min-height: 100px;
-  border: 1px solid $border-color;
-  border-radius: 4px;
+  border: 2px solid $border-color;
+  border-radius: 2px;
   display: flex;
   flex-direction: column;
+  background: $card-background;
   
   &__header {
     padding: $spacing-xs;
-    background: $background-color;
-    border-bottom: 1px solid $border-color;
-    border-radius: 4px 4px 0 0;
+    background: $gradient-dark;
+    color: $text-color;
+    border-bottom: 2px solid $border-color;
+    font-family: 'Courier New', monospace;
     height: 48px;
   }
   
   &__name {
     font-size: 0.75rem;
-    color: $secondary-color;
+    color: $accent-secondary;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-weight: bold;
   }
   
   &__date {
@@ -195,12 +164,18 @@
 }
 
 .calendar-activity {
-  background: #f3f4f6;
-  border-radius: 4px;
+  background: $gradient-primary;
+  border: 2px solid $border-color;
+  color: $text-color;
+  border-radius: 2px;
   padding: $spacing-xs;
-  border: 1px solid $border-color;
   margin-bottom: $spacing-xs;
   font-size: 0.875rem;
+  transition: transform 0.2s;
+  
+  &:hover {
+    box-shadow: 4px 4px 0 $accent-secondary;
+  }
   
   &__header {
     display: flex;
@@ -221,11 +196,12 @@
   }
   
   &__driver-box {
-    background: $background-color;
-    border: 1px solid $border-color;
-    border-radius: 4px;
+    background: $gradient-secondary;
+    border: 2px solid $border-color;
+    border-radius: 2px;
     padding: $spacing-xs;
     min-width: 120px;
+    color: $text-color;
   }
   
   &__driver-header {
@@ -270,6 +246,15 @@
     gap: $spacing-sm;
     margin-top: $spacing-sm;
   }
+
+  &__time {
+    color: rgba(255, 255, 255, 0.9);
+    font-family: 'Courier New', monospace;
+  }
+  
+  &__location {
+    color: rgba(255, 255, 255, 0.9);
+  }
 }
 
 .modal {
@@ -278,44 +263,67 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.75);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   
   &__content {
-    background: white;
+    background: $panel-background;
     padding: $spacing-lg;
-    border-radius: 8px;
-    max-width: 500px;
-    width: 90%;
+    border-radius: 2px;
+    border: 2px solid $border-color;
+    box-shadow: 4px 4px 0 $accent-color;
+   // width: 90%;
+    max-width: 600px;
+    position: relative;
+    margin: $spacing-md;
   }
   
   &__activity-info {
     margin: $spacing-md 0;
-    padding: $spacing-sm;
-    background: $background-color;
-    border-radius: 4px;
+    padding: $spacing-md;
+    background: $card-background;
+    border: 2px solid $border-color;
+    border-radius: 2px;
+    color: $text-color;
   }
   
-  &__drivers-list {
+  &__driver-section {
     margin: $spacing-md 0;
-    max-height: 300px;
-    overflow-y: auto;
+    padding: $spacing-md;
+    background: $card-background;
+    border: 2px solid $border-color;
+    border-radius: 2px;
+    
+    h3 {
+      margin: 0 0 $spacing-md;
+      font-size: 1rem;
+      font-weight: 500;
+      color: $text-color;
+      font-family: 'Courier New', monospace;
+    }
+  }
+  
+  &__kids-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: $spacing-sm;
     
     .checkbox {
       display: flex;
       align-items: center;
       padding: $spacing-sm;
       cursor: pointer;
-      
-      &:hover {
-        background: $background-color;
-      }
+      color: $text-color;
       
       input {
         margin-right: $spacing-sm;
+      }
+      
+      &:hover {
+        background: rgba(255, 255, 255, 0.05);
       }
     }
   }
@@ -326,32 +334,14 @@
     gap: $spacing-sm;
     margin-top: $spacing-lg;
   }
-
-  &__driver-section {
-    margin: $spacing-md 0;
-    padding: $spacing-sm;
-    background: $background-color;
-    border-radius: 4px;
-    
-    h3 {
-      margin: 0 0 $spacing-sm;
-      font-size: 1rem;
-      font-weight: 500;
-    }
-  }
-  
-  &__kids-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: $spacing-sm;
-  }
   
   &__error {
     margin: $spacing-sm 0;
     padding: $spacing-sm;
     color: $error-color;
-    background: lighten($error-color, 45%);
-    border-radius: 4px;
+    background: rgba($error-color, 0.1);
+    border: 2px solid $error-color;
+    border-radius: 2px;
   }
 }
 

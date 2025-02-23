@@ -1,10 +1,17 @@
-// Colors
-$primary-color: #2563eb;
-$secondary-color: #64748b;
-$background-color: #f8fafc;
-$text-color: #1e293b;
-$border-color: #e2e8f0;
-$error-color: #dc2626;
+// Neo brutalist color palette
+$background-color: #000000;     // Pure black
+$panel-background: #1a1a1a;     // Dark grey
+$card-background: #2d2d2d;      // Medium grey
+$accent-color: #ff3d00;         // Vibrant orange/red
+$accent-secondary: #00e5ff;     // Cyan
+$text-color: #ffffff;           // White
+$text-secondary: #b3b3b3;       // Light grey
+$border-color: #333333;         // Dark grey for borders
+
+// Gradients
+$gradient-primary: linear-gradient(135deg, #ff3d00 0%, #ff8a00 100%);    // Orange to red
+$gradient-secondary: linear-gradient(135deg, #00e5ff 0%, #2979ff 100%);  // Cyan to blue
+$gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);      // Dark gradient
 
 // Spacing
 $spacing-xxs: 0.125rem;  // 2px
@@ -19,4 +26,13 @@ $spacing-xxl: 3rem;      // 48px
 $breakpoint-sm: 640px;
 $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;
-$breakpoint-xl: 1280px; 
+$breakpoint-xl: 1280px;
+
+// Status colors
+$success-color: #00ff85;
+$error-color: #ff3d00;
+$warning-color: #ffcc00;
+
+// Button colors
+$primary-color: $accent-color;
+$secondary-color: $accent-secondary; 
