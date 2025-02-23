@@ -66,13 +66,15 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    line-height: 0;
     border-radius: 50%;
     background: none;
     border: 1px solid $border-color;
     color: $secondary-color;
-    transform: translateY(-1px);
+
+    svg {
+      display: block;  /* Removes any extra space */
+      color: inherit;
+    }
 
     &:hover {
       background-color: $primary-color;

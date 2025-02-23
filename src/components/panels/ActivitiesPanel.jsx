@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { getActivities, addActivity, deleteActivity } from '../../lib/db';
+import PlusIcon from '../common/icons/PlusIcon';
 
 export default function ActivitiesPanel() {
   const [activities, setActivities] = useState([]);
@@ -67,7 +68,7 @@ export default function ActivitiesPanel() {
           className="button button--add"
           onClick={() => setIsAddingActivity(true)}
         >
-          +
+          <PlusIcon />
         </button>
       </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getDrivers, addDriver, deleteDriver } from '../../lib/db';
+import PlusIcon from '../common/icons/PlusIcon';
 
 export default function DriversPanel() {
   const [drivers, setDrivers] = useState([]);
@@ -61,7 +62,7 @@ export default function DriversPanel() {
           className="button button--add"
           onClick={() => setIsAddingDriver(true)}
         >
-          +
+          <PlusIcon />
         </button>
       </div>
 

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getKids, addKid, deleteKid } from '../../lib/db';
+import PlusIcon from '../common/icons/PlusIcon';
 
 export default function KidsPanel() {
   const [kids, setKids] = useState([]);
@@ -61,7 +62,7 @@ export default function KidsPanel() {
           className="button button--add"
           onClick={() => setIsAddingKid(true)}
         >
-          +
+          <PlusIcon />
         </button>
       </div>
 

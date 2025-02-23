@@ -3,6 +3,7 @@ import { format, parseISO } from 'date-fns'
 import { getDriverAssignments, getKidAssignments } from '../../lib/db'
 import AssignDriverModal from './AssignDriverModal'
 import AssignKidsModal from './AssignKidsModal'
+import PlusIcon from '../common/icons/PlusIcon'
 
 export default function ActivityCard({ activity }) {
   const [isAssigningDrivers, setIsAssigningDrivers] = useState(false)
@@ -55,7 +56,7 @@ export default function ActivityCard({ activity }) {
           className="button button--add"
           onClick={() => setIsAssigningDrivers(true)}
         >
-          +
+          <PlusIcon />
         </button>
       </div>
       <div className="calendar-activity__location">{activity.location}</div>
@@ -73,7 +74,7 @@ export default function ActivityCard({ activity }) {
                     setIsAssigningKids(true)
                   }}
                 >
-                  +
+                  <PlusIcon />
                 </button>
               </div>
               <div className="calendar-activity__kids-list">
