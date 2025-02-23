@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { format } from 'date-fns'
 import { getKids, assignKids } from '../../lib/db'
+import Modal from '../common/Modal'
 
 export default function AssignKidsModal({ 
   activity, 
@@ -74,65 +75,63 @@ export default function AssignKidsModal({
   }
   
   return (
-    <div className="modal">
-      <div className="modal__content">
-        <h2>Assign Kids to {driver.family_name}</h2>
-        <div className="modal__activity-info">
-          <div>{activity.name}</div>
-          <div>{format(new Date(activity.date), 'EEE, MMM d')}</div>
-          <div>{format(new Date(`2000-01-01T${activity.time}`), 'h:mm a')}</div>
-        </div>
-        
-        {error && (
-          <div className="modal__error">{error}</div>
-        )}
-        
-        {isLoading ? (
-          <div>Loading kids...</div>
-        ) : (
-          <div className="modal__assignments">
-            <div className="modal__driver-section">
-              <h3>{driver.family_name} ({driver.seat_capacity - (assignments[driver.assignment_id] || []).length} seats available)</h3>
-              <div className="modal__kids-list">
-                {kids.map(kid => (
-                  <label key={kid.id} className="checkbox">
-                    <input
-                      type="checkbox"
-                      checked={(assignments[driver.assignment_id] || []).includes(kid.id)}
-                      disabled={
-                        driver.seat_capacity === (assignments[driver.assignment_id] || []).length && 
-                        !(assignments[driver.assignment_id] || []).includes(kid.id)
-                      }
-                      onChange={(e) => handleKidAssignment(
-                        kid.id, 
-                        e.target.checked
-                      )}
-                    />
-                    <span>{kid.name}</span>
-                  </label>
-                ))}
-              </div>
+    <Modal onClose={onClose}>
+      <h2>Assign Kids to {driver.family_name}</h2>
+      <div className="modal__activity-info">
+        <div>{activity.name}</div>
+        <div>{format(new Date(activity.date), 'EEE, MMM d')}</div>
+        <div>{format(new Date(`2000-01-01T${activity.time}`), 'h:mm a')}</div>
+      </div>
+      
+      {error && (
+        <div className="modal__error">{error}</div>
+      )}
+      
+      {isLoading ? (
+        <div>Loading kids...</div>
+      ) : (
+        <div className="modal__assignments">
+          <div className="modal__driver-section">
+            <h3>{driver.family_name} ({driver.seat_capacity - (assignments[driver.assignment_id] || []).length} seats available)</h3>
+            <div className="modal__kids-list">
+              {kids.map(kid => (
+                <label key={kid.id} className="checkbox">
+                  <input
+                    type="checkbox"
+                    checked={(assignments[driver.assignment_id] || []).includes(kid.id)}
+                    disabled={
+                      driver.seat_capacity === (assignments[driver.assignment_id] || []).length && 
+                      !(assignments[driver.assignment_id] || []).includes(kid.id)
+                    }
+                    onChange={(e) => handleKidAssignment(
+                      kid.id, 
+                      e.target.checked
+                    )}
+                  />
+                  <span>{kid.name}</span>
+                </label>
+              ))}
             </div>
           </div>
-        )}
-        
-        <div className="modal__actions">
-          <button 
-            className="button" 
-            onClick={onClose}
-            disabled={isSaving}
-          >
-            Cancel
-          </button>
-          <button 
-            className="button button--primary" 
-            onClick={handleAssign}
-            disabled={isSaving}
-          >
-            {isSaving ? 'Saving...' : 'Assign Kids'}
-          </button>
         </div>
+      )}
+      
+      <div className="modal__actions">
+        <button 
+          className="button" 
+          onClick={onClose}
+          disabled={isSaving}
+        >
+          Cancel
+        </button>
+        <button 
+          className="button button--primary" 
+          onClick={handleAssign}
+          disabled={isSaving}
+        >
+          {isSaving ? 'Saving...' : 'Assign Kids'}
+        </button>
       </div>
-    </div>
+    </Modal>
   )
 } 

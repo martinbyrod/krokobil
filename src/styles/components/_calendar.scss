@@ -309,12 +309,12 @@
   &__kids-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-    gap: $spacing-sm;
+    gap: 0;//$spacing-sm;
     
     .checkbox {
       display: flex;
       align-items: center;
-      padding: $spacing-sm;
+      padding: 0;//$spacing-sm;
       cursor: pointer;
       color: $text-color;
       
