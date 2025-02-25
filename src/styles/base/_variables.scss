@@ -1,17 +1,19 @@
-// Neo brutalist color palette
-$background-color: #000000;     // Pure black
-$panel-background: #1a1a1a;     // Dark grey
-$card-background: #2d2d2d;      // Medium grey
-$accent-color: #ff3d00;         // Vibrant orange/red
-$accent-secondary: #00e5ff;     // Cyan
-$text-color: #ffffff;           // White
-$text-secondary: #b3b3b3;       // Light grey
-$border-color: #333333;         // Dark grey for borders
+// Fresh light color palette with more pop and contrast
+$background-color: darken(#f0f4f8, 0%);     // Slightly blue-tinted background for better separation
+$panel-background: #ffffff;     // Panels and calendar
+$card-background: #cfdfdf;      // panel contents + day cards
+$accent-color: darken(#0a90e2, 5%);         // Bright blue for pop (activity section)
+$accent-secondary: darken(#6fcf87, 5%);     // Bright green (driver section)
+$text-color: #1a202c;           // Dark slate for better contrast
+$text-secondary: #4a5568;       // Darker gray for better readability
+$border-color: darken(#dfe4ea, 20%);         // Slightly darker border for definition
+$card-highlight: lighten($card-background, 5%);       // highlight for panel cards
 
-// Gradients
-$gradient-primary: linear-gradient(135deg, #ff3d00 0%, #ff8a00 100%);    // Orange to red
-$gradient-secondary: linear-gradient(135deg, #00e5ff 0%, #2979ff 100%);  // Cyan to blue
-$gradient-dark: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);      // Dark gradient
+$gradient-primary: linear-gradient(135deg, $accent-color 0%, lighten($accent-color, 5%) 100%);
+$gradient-secondary: linear-gradient(135deg, $accent-secondary 0%, lighten($accent-secondary, 5%) 100%);
+
+// panel header background
+$gradient-light: linear-gradient(135deg, darken($panel-background, 5%) 0%, darken($panel-background, 10%) 100%);
 
 // Spacing
 $spacing-xxs: 0.125rem;  // 2px
@@ -28,11 +30,15 @@ $breakpoint-md: 768px;
 $breakpoint-lg: 1024px;
 $breakpoint-xl: 1280px;
 
-// Status colors
-$success-color: #00ff85;
-$error-color: #ff3d00;
-$warning-color: #ffcc00;
+// Status colors with more pop
+$success-color: #48bb78;  // Brighter green
+$error-color: #f56565;    // Brighter red
+$warning-color: #ecc94b;  // Brighter yellow
 
 // Button colors
 $primary-color: $accent-color;
-$secondary-color: $accent-secondary; 
+$secondary-color: $accent-secondary;
+
+// Shadow with more definition
+$card-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+$hover-shadow: 0 4px 12px rgba(0, 0, 0, 0.12); 

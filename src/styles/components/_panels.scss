@@ -1,8 +1,8 @@
 .panel {
   background: $panel-background;
-  border-radius: 2px;
-  border: 2px solid $border-color;
-  box-shadow: 4px 4px 0 $accent-secondary;
+  border-radius: 12px;
+  border: 1px solid $border-color;
+  box-shadow: $card-shadow;
   padding: $spacing-sm;
   height: 100%;
   display: flex;
@@ -13,8 +13,12 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: $spacing-sm;
     padding-bottom: $spacing-sm;
-    border-bottom: 2px solid $border-color;
+    border-bottom: 1px solid $border-color;
+    background: $gradient-light;
+    margin: -#{$spacing-sm} -#{$spacing-sm} 0;
+    border-radius: 12px 12px 0 0;
 
     &-main {
       display: flex;
@@ -27,9 +31,8 @@
       font-weight: 600;
       color: $text-color;
       margin: 0;
-      font-family: 'Courier New', monospace;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-family: inherit;
+      letter-spacing: 0.5px;
     }
   }
 
@@ -39,17 +42,20 @@
     gap: $spacing-md;
     padding: $spacing-md;
     border: 1px solid $border-color;
-    border-radius: 4px;
+    border-radius: 8px;
+    background: $background-color;
 
-    input {
+    input, select {
       padding: $spacing-sm;
       border: 1px solid $border-color;
-      border-radius: 4px;
+      border-radius: 8px;
       font-size: 1rem;
+      background-color: white;
 
       &:focus {
         outline: none;
         border-color: $primary-color;
+        box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
       }
     }
   }
@@ -66,16 +72,20 @@
     gap: $spacing-xs;
     overflow-y: auto;
     max-height: 400px;
+    padding: $spacing-xs;
+    //background: $background-color;
+    //border-radius: 8px;
   }
 
   &__list-item {
     position: relative;
-    padding: $spacing-xs;
-    border: 2px solid $border-color;
-    border-radius: 2px;
-    background: $card-background;
+   // padding: $spacing-sm;
+   //  border: 1px solid $border-color;
+   // border-radius: 8px;
+   // background: $card-background;
     color: $text-color;
-    transition: transform 0.2s;
+    transition: all 0.2s;
+    //box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 
     .button--delete {
       opacity: 0;
@@ -92,17 +102,19 @@
       line-height: 1;
       background: none;
       border: none;
-      color: $secondary-color;
+      color: $text-secondary;
       transition: all 0.2s;
 
       &:hover {
-        color: #dc2626;
+        color: $error-color;
       }
     }
 
     &:hover {
-      transform: translate(-2px, -2px);
-      box-shadow: 4px 4px 0 $accent-color;
+      transform: translateY(-2px);
+      box-shadow: $hover-shadow;
+      border-color: rgba($accent-color, 0.3);
+      background: $card-highlight;
 
       .button--delete {
         opacity: 1;
@@ -121,33 +133,35 @@
   }
 
   &__list-item-name {
-    font-weight: 500;
+    font-weight: 600;
+    color: $text-color;
   }
 
   &__list-item-capacity {
-    color: $secondary-color;
+    color: $accent-color;
     font-size: 0.875rem;
+    font-weight: 500;
   }
 
   &__error {
     padding: $spacing-sm;
-    background-color: #fee2e2;
-    border: 1px solid #ef4444;
-    color: #dc2626;
-    border-radius: 4px;
+    background-color: rgba($error-color, 0.1);
+    border: 1px solid $error-color;
+    color: darken($error-color, 20%);
+    border-radius: 8px;
     margin-bottom: $spacing-md;
   }
 
   &__loading {
     padding: $spacing-md;
     text-align: center;
-    color: $secondary-color;
+    color: $text-secondary;
   }
 
   &__empty {
     padding: $spacing-md;
     text-align: center;
-    color: $secondary-color;
+    color: $text-secondary;
     font-style: italic;
   }
 
@@ -173,13 +187,15 @@
   select {
     padding: $spacing-sm;
     border: 1px solid $border-color;
-    border-radius: 4px;
+    border-radius: 8px;
     font-size: 1rem;
     width: 100%;
+    background-color: white;
     
     &:focus {
       outline: none;
       border-color: $primary-color;
+      box-shadow: 0 0 0 2px rgba($primary-color, 0.2);
     }
   }
 } 

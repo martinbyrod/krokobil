@@ -13,10 +13,9 @@
   }
   
   &__main {
-    background: $panel-background;
-    border-radius: 2px;
-    border: 2px solid $border-color;
-    box-shadow: 4px 4px 0 $accent-color;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
   }
 }
 
