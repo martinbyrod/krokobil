@@ -175,4 +175,60 @@ export async function assignKids(assignments) {
   }
   
   return response.json();
+}
+
+// Add these new functions to check for assignments
+
+export async function checkKidAssignments(kidId) {
+  const response = await fetch(`${API_BASE_URL}/api/kids/${kidId}/assignments`);
+  if (!response.ok) {
+    throw new Error('Failed to check kid assignments');
+  }
+  return response.json();
+}
+
+export async function checkDriverAssignments(driverId) {
+  const response = await fetch(`${API_BASE_URL}/api/drivers/${driverId}/assignments`);
+  if (!response.ok) {
+    throw new Error('Failed to check driver assignments');
+  }
+  return response.json();
+}
+
+export async function checkActivityAssignments(activityId) {
+  const response = await fetch(`${API_BASE_URL}/api/activities/${activityId}/assignments`);
+  if (!response.ok) {
+    throw new Error('Failed to check activity assignments');
+  }
+  return response.json();
+}
+
+export async function removeKidAssignments(kidId) {
+  const response = await fetch(`${API_BASE_URL}/api/kids/${kidId}/assignments`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to remove kid assignments');
+  }
+  return response.json();
+}
+
+export async function removeDriverAssignments(driverId) {
+  const response = await fetch(`${API_BASE_URL}/api/drivers/${driverId}/assignments`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to remove driver assignments');
+  }
+  return response.json();
+}
+
+export async function removeActivityAssignments(activityId) {
+  const response = await fetch(`${API_BASE_URL}/api/activities/${activityId}/assignments`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) {
+    throw new Error('Failed to remove activity assignments');
+  }
+  return response.json();
 } 

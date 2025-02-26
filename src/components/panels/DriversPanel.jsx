@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { getDrivers, addDriver, deleteDriver } from '../../lib/db';
+import { getDrivers, addDriver, deleteDriver, removeDriverAssignments } from '../../lib/db';
 import PlusIcon from '../common/icons/PlusIcon';
+import { CALENDAR_RELOAD_EVENT } from '../calendar/Calendar';
 
 export default function DriversPanel() {
   const [drivers, setDrivers] = useState([]);
@@ -47,6 +48,9 @@ export default function DriversPanel() {
         setError(null);
         await deleteDriver(id);
         loadDrivers();
+        
+        // Trigger calendar reload
+        window.dispatchEvent(new Event(CALENDAR_RELOAD_EVENT));
       } catch (err) {
         setError('Failed to delete driver. Please try again.');
         console.error('Error deleting driver:', err);

@@ -1,38 +1,56 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { startOfWeek, addDays, format, addWeeks } from 'date-fns'
 import CalendarWeek from './CalendarWeek'
 import { getActivityInstances } from '../../lib/db'
+
+// Create a custom event for calendar reloads
+export const CALENDAR_RELOAD_EVENT = 'calendar-reload-event';
 
 export default function Calendar() {
   const [startDate, setStartDate] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }))
   const [activities, setActivities] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   
-  useEffect(() => {
-    const fetchActivities = async () => {
-      const endDate = addDays(startDate, 13)
-      const instances = await getActivityInstances(startDate, endDate)
+  const fetchActivities = useCallback(async (start = startDate) => {
+    setIsLoading(true);
+    try {
+      const endDate = addDays(start, 13)
+      const instances = await getActivityInstances(start, endDate)
       setActivities(instances)
+    } catch (error) {
+      console.error('Failed to load activities:', error);
+    } finally {
       setIsLoading(false)
     }
+  }, [startDate]);
+  
+  useEffect(() => {
+    fetchActivities();
     
-    fetchActivities()
-  }, [startDate])
+    // Listen for the reload event
+    const handleReload = () => {
+      console.log('Calendar reload triggered');
+      fetchActivities();
+    };
+    
+    window.addEventListener(CALENDAR_RELOAD_EVENT, handleReload);
+    
+    // Clean up the event listener
+    return () => {
+      window.removeEventListener(CALENDAR_RELOAD_EVENT, handleReload);
+    };
+  }, [fetchActivities]);
 
   const nextWeek = async () => {
     const newDate = addWeeks(startDate, 1)
-    const endDate = addDays(newDate, 13)
-    const instances = await getActivityInstances(newDate, endDate)
-    setActivities(instances)
-    setStartDate(newDate)
+    setStartDate(newDate);
+    fetchActivities(newDate);
   }
 
   const previousWeek = async () => {
     const newDate = addWeeks(startDate, -1)
-    const endDate = addDays(newDate, 13)
-    const instances = await getActivityInstances(newDate, endDate)
-    setActivities(instances)
-    setStartDate(newDate)
+    setStartDate(newDate);
+    fetchActivities(newDate);
   }
 
   const activitiesByDate = activities.reduce((acc, activity) => {

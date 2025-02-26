@@ -44,15 +44,41 @@ app.post('/api/drivers', async (req, res) => {
 
 // Delete a driver
 app.delete('/api/drivers/:id', async (req, res) => {
+  const client = await pool.connect();
   try {
-    const result = await pool.query('DELETE FROM drivers WHERE id = $1 RETURNING *', [req.params.id]);
+    await client.query('BEGIN');
+    
+    // First delete all kid assignments for this driver's assignments
+    await client.query(`
+      DELETE FROM kid_assignments
+      WHERE driver_assignment_id IN (
+        SELECT id FROM driver_assignments
+        WHERE driver_id = $1
+      )
+    `, [req.params.id]);
+    
+    // Then delete all driver assignments for this driver
+    await client.query(`
+      DELETE FROM driver_assignments
+      WHERE driver_id = $1
+    `, [req.params.id]);
+    
+    // Finally delete the driver
+    const result = await client.query('DELETE FROM drivers WHERE id = $1 RETURNING *', [req.params.id]);
+    
     if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
       res.status(404).json({ error: 'Driver not found' });
     } else {
+      await client.query('COMMIT');
       res.json(result.rows[0]);
     }
   } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error deleting driver:', err);
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -82,15 +108,32 @@ app.post('/api/kids', async (req, res) => {
 
 // Delete a kid
 app.delete('/api/kids/:id', async (req, res) => {
+  const client = await pool.connect();
   try {
-    const result = await pool.query('DELETE FROM kids WHERE id = $1 RETURNING *', [req.params.id]);
+    await client.query('BEGIN');
+    
+    // Delete all kid assignments for this kid
+    await client.query(`
+      DELETE FROM kid_assignments
+      WHERE kid_id = $1
+    `, [req.params.id]);
+    
+    // Then delete the kid
+    const result = await client.query('DELETE FROM kids WHERE id = $1 RETURNING *', [req.params.id]);
+    
     if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
       res.status(404).json({ error: 'Kid not found' });
     } else {
+      await client.query('COMMIT');
       res.json(result.rows[0]);
     }
   } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error deleting kid:', err);
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -123,16 +166,57 @@ app.post('/api/activities', async (req, res) => {
 
 // Delete an activity
 app.delete('/api/activities/:id', async (req, res) => {
+  const client = await pool.connect();
   try {
-    const result = await pool.query('DELETE FROM activities WHERE id = $1 RETURNING *', [req.params.id]);
+    await client.query('BEGIN');
+    
+    // Get all activity instances for this activity
+    const { rows: instances } = await client.query(`
+      SELECT id FROM activity_instances
+      WHERE activity_id = $1
+    `, [req.params.id]);
+    
+    const instanceIds = instances.map(i => i.id);
+    
+    if (instanceIds.length > 0) {
+      // Delete all kid assignments for drivers assigned to these activity instances
+      await client.query(`
+        DELETE FROM kid_assignments
+        WHERE driver_assignment_id IN (
+          SELECT id FROM driver_assignments
+          WHERE activity_instance_id = ANY($1)
+        )
+      `, [instanceIds]);
+      
+      // Delete all driver assignments for these activity instances
+      await client.query(`
+        DELETE FROM driver_assignments
+        WHERE activity_instance_id = ANY($1)
+      `, [instanceIds]);
+    }
+    
+    // Delete all activity instances for this activity
+    await client.query(`
+      DELETE FROM activity_instances
+      WHERE activity_id = $1
+    `, [req.params.id]);
+    
+    // Finally delete the activity
+    const result = await client.query('DELETE FROM activities WHERE id = $1 RETURNING *', [req.params.id]);
+    
     if (result.rows.length === 0) {
+      await client.query('ROLLBACK');
       res.status(404).json({ error: 'Activity not found' });
     } else {
+      await client.query('COMMIT');
       res.json(result.rows[0]);
     }
   } catch (err) {
-    console.error('Database error:', err);
+    await client.query('ROLLBACK');
+    console.error('Error deleting activity:', err);
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -384,6 +468,156 @@ app.post('/api/kid-assignments', async (req, res) => {
   } catch (err) {
     await client.query('ROLLBACK');
     console.error('Error assigning kids:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Check kid assignments
+app.get('/api/kids/:id/assignments', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT ka.* 
+      FROM kid_assignments ka
+      JOIN driver_assignments da ON da.id = ka.driver_assignment_id
+      WHERE ka.kid_id = $1
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error checking kid assignments:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Remove kid assignments
+app.delete('/api/kids/:id/assignments', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    // Delete all kid assignments for this kid
+    const result = await client.query(`
+      DELETE FROM kid_assignments
+      WHERE kid_id = $1
+      RETURNING *
+    `, [req.params.id]);
+    
+    await client.query('COMMIT');
+    res.json(result.rows);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error removing kid assignments:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Check driver assignments
+app.get('/api/drivers/:id/assignments', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT da.* 
+      FROM driver_assignments da
+      WHERE da.driver_id = $1
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error checking driver assignments:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Remove driver assignments
+app.delete('/api/drivers/:id/assignments', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    // First delete all kid assignments for this driver's assignments
+    await client.query(`
+      DELETE FROM kid_assignments
+      WHERE driver_assignment_id IN (
+        SELECT id FROM driver_assignments
+        WHERE driver_id = $1
+      )
+    `, [req.params.id]);
+    
+    // Then delete all driver assignments for this driver
+    const result = await client.query(`
+      DELETE FROM driver_assignments
+      WHERE driver_id = $1
+    `, [req.params.id]);
+    
+    await client.query('COMMIT');
+    res.json(result.rows);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error removing driver assignments:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Check activity assignments
+app.get('/api/activities/:id/assignments', async (req, res) => {
+  try {
+    const result = await pool.query(`
+      SELECT ai.* 
+      FROM activity_instances ai
+      WHERE ai.activity_id = $1
+    `, [req.params.id]);
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Error checking activity assignments:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Remove activity assignments
+app.delete('/api/activities/:id/assignments', async (req, res) => {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    
+    // Get all activity instances for this activity
+    const { rows: instances } = await client.query(`
+      SELECT id FROM activity_instances
+      WHERE activity_id = $1
+    `, [req.params.id]);
+    
+    const instanceIds = instances.map(i => i.id);
+    
+    if (instanceIds.length > 0) {
+      // Delete all kid assignments for drivers assigned to these activity instances
+      await client.query(`
+        DELETE FROM kid_assignments
+        WHERE driver_assignment_id IN (
+          SELECT id FROM driver_assignments
+          WHERE activity_instance_id = ANY($1)
+        )
+      `, [instanceIds]);
+      
+      // Delete all driver assignments for these activity instances
+      await client.query(`
+        DELETE FROM driver_assignments
+        WHERE activity_instance_id = ANY($1)
+      `, [instanceIds]);
+    }
+    
+    // Delete all activity instances for this activity
+    const result = await client.query(`
+      DELETE FROM activity_instances
+      WHERE activity_id = $1
+    `, [req.params.id]);
+    
+    await client.query('COMMIT');
+    res.json(result.rows);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error removing activity assignments:', err);
     res.status(500).json({ error: err.message });
   } finally {
     client.release();

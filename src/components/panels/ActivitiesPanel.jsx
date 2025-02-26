@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { getActivities, addActivity, deleteActivity } from '../../lib/db';
+import { getActivities, addActivity, deleteActivity, checkActivityAssignments, removeActivityAssignments } from '../../lib/db';
 import PlusIcon from '../common/icons/PlusIcon';
+import { CALENDAR_RELOAD_EVENT } from '../calendar/Calendar';
 
 export default function ActivitiesPanel() {
   const [activities, setActivities] = useState([]);
@@ -14,6 +15,8 @@ export default function ActivitiesPanel() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(null);
+  const [hasAssignments, setHasAssignments] = useState(false);
 
   useEffect(() => {
     loadActivities();
@@ -47,12 +50,22 @@ export default function ActivitiesPanel() {
     }
   }
 
-  async function handleDeleteActivity(id) {
+  async function handleDeleteActivity(id, removeAssignmentsFirst = false) {
     if (window.confirm('Are you sure you want to delete this activity?')) {
       try {
         setError(null);
+        
+        if (removeAssignmentsFirst) {
+          await removeActivityAssignments(id);
+        }
+        
         await deleteActivity(id);
+        setConfirmingDelete(null);
+        setHasAssignments(false);
         loadActivities();
+        
+        // Trigger calendar reload
+        window.dispatchEvent(new Event(CALENDAR_RELOAD_EVENT));
       } catch (err) {
         setError('Failed to delete activity. Please try again.');
         console.error('Error deleting activity:', err);

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getKids, addKid, deleteKid } from '../../lib/db';
 import PlusIcon from '../common/icons/PlusIcon';
+import { CALENDAR_RELOAD_EVENT } from '../calendar/Calendar';
 
 export default function KidsPanel() {
   const [kids, setKids] = useState([]);
@@ -47,6 +48,9 @@ export default function KidsPanel() {
         setError(null);
         await deleteKid(id);
         loadKids();
+        
+        // Trigger calendar reload
+        window.dispatchEvent(new Event(CALENDAR_RELOAD_EVENT));
       } catch (err) {
         setError('Failed to delete kid. Please try again.');
         console.error('Error deleting kid:', err);
