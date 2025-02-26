@@ -23,7 +23,8 @@ CREATE TABLE activities (
     name VARCHAR(255) NOT NULL,
     day INTEGER NOT NULL,
     time TIME NOT NULL,
-    location VARCHAR(255) NOT NULL
+    location VARCHAR(255) NOT NULL,
+    is_one_time BOOLEAN DEFAULT false
 );
 
 CREATE TABLE activity_instances (
@@ -66,6 +67,3 @@ INSERT INTO activities (name, day, time, location) VALUES
     ('Soccer Practice', 1, '15:00', 'Main Field'),
     ('Swimming', 3, '16:30', 'Community Pool'),
     ('Piano Lessons', 2, '14:00', 'Music School'); 
-
-INSERT INTO driver_assignments (id, activity_instance_id, driver_id) VALUES
-    (1, 1, 1);

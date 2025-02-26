@@ -150,17 +150,76 @@ app.get('/api/activities', async (req, res) => {
 
 // Add a new activity
 app.post('/api/activities', async (req, res) => {
-  const { name, day, time, location } = req.body;
+  const { name, day, time, location, is_recurring = true, targetDate = null } = req.body;
+  const client = await pool.connect();
+  
   try {
-    console.log('Adding activity:', { name, day, time, location }); // Debug log
-    const result = await pool.query(
-      'INSERT INTO activities (name, day, time, location) VALUES ($1, $2, $3, $4) RETURNING *',
-      [name, day, time, location]
-    );
-    res.json(result.rows[0]);
+    await client.query('BEGIN');
+    
+    // If it's a recurring activity, add it to the activities table
+    let activityId = null;
+    
+    if (is_recurring) {
+      console.log('Adding recurring activity:', { name, day, time, location });
+      const result = await client.query(
+        'INSERT INTO activities (name, day, time, location) VALUES ($1, $2, $3, $4) RETURNING *',
+        [name, day, time, location]
+      );
+      activityId = result.rows[0].id;
+    } else {
+      console.log('Adding one-time activity:', { name, day, time, location, targetDate });
+      
+      // For non-recurring, we'll create just one instance for the specified date
+      let formattedDate;
+      
+      if (targetDate) {
+        // Use the provided target date directly
+        formattedDate = targetDate;
+      } else {
+        // Calculate the date for this instance based on the day of week
+        const today = new Date();
+        const currentDayOfWeek = (today.getDay() + 6) % 7 + 1; // Convert to 1-7 (Mon-Sun)
+        
+        // Calculate days to add to get to the specified day this week
+        let daysToAdd = day - currentDayOfWeek;
+        if (daysToAdd < 0) daysToAdd += 7; // If the day already passed this week, go to next week
+        
+        const calculatedDate = new Date(today);
+        calculatedDate.setDate(today.getDate() + daysToAdd);
+        formattedDate = calculatedDate.toISOString().split('T')[0];
+      }
+      
+      // Insert the one-time instance with a temporary activity entry
+      const tempActivity = await client.query(
+        'INSERT INTO activities (name, day, time, location, is_one_time) VALUES ($1, $2, $3, $4, TRUE) RETURNING *',
+        [name, day, time, location]
+      );
+      
+      activityId = tempActivity.rows[0].id;
+      
+      // Create just one instance
+      await client.query(`
+        INSERT INTO activity_instances (activity_id, date, is_cancelled)
+        VALUES ($1, $2, false)
+      `, [activityId, formattedDate]);
+    }
+    
+    await client.query('COMMIT');
+    
+    res.json({ 
+      id: activityId,
+      name, 
+      day, 
+      time, 
+      location, 
+      is_recurring 
+    });
   } catch (err) {
+    await client.query('ROLLBACK');
     console.error('Database error:', err);
     res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
   }
 });
 
@@ -170,11 +229,11 @@ app.delete('/api/activities/:id', async (req, res) => {
   try {
     await client.query('BEGIN');
     
-    // Get all activity instances for this activity
-    const { rows: instances } = await client.query(`
-      SELECT id FROM activity_instances
-      WHERE activity_id = $1
-    `, [req.params.id]);
+    // First check if this activity has any instances
+    const { rows: instances } = await client.query(
+      'SELECT id FROM activity_instances WHERE activity_id = $1',
+      [req.params.id]
+    );
     
     const instanceIds = instances.map(i => i.id);
     
@@ -193,16 +252,19 @@ app.delete('/api/activities/:id', async (req, res) => {
         DELETE FROM driver_assignments
         WHERE activity_instance_id = ANY($1)
       `, [instanceIds]);
+      
+      // Delete all activity instances for this activity
+      await client.query(
+        'DELETE FROM activity_instances WHERE activity_id = $1',
+        [req.params.id]
+      );
     }
     
-    // Delete all activity instances for this activity
-    await client.query(`
-      DELETE FROM activity_instances
-      WHERE activity_id = $1
-    `, [req.params.id]);
-    
     // Finally delete the activity
-    const result = await client.query('DELETE FROM activities WHERE id = $1 RETURNING *', [req.params.id]);
+    const result = await client.query(
+      'DELETE FROM activities WHERE id = $1 RETURNING *',
+      [req.params.id]
+    );
     
     if (result.rows.length === 0) {
       await client.query('ROLLBACK');
@@ -229,7 +291,8 @@ app.get('/api/activity-instances', async (req, res) => {
     await client.query('BEGIN');
     
     // First, ensure instances exist for the requested date range
-    const activities = await client.query('SELECT * FROM activities');
+    // Only auto-generate for recurring activities (is_one_time IS NULL OR is_one_time = FALSE)
+    const activities = await client.query('SELECT * FROM activities WHERE is_one_time IS NULL OR is_one_time = FALSE');
     
     for (let date = parseISO(start_date); date <= parseISO(end_date); date = addDays(date, 1)) {
       const dayOfWeek = (date.getDay() + 6) % 7 + 1; // Convert to 1-7 (Mon-Sun)
@@ -257,7 +320,8 @@ app.get('/api/activity-instances', async (req, res) => {
           a.id as activity_id,
           a.name,
           a.time,
-          a.location
+          a.location,
+          a.is_one_time
         FROM activity_instances ai
         JOIN activities a ON a.id = ai.activity_id
         WHERE ai.date BETWEEN $1 AND $2

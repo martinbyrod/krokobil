@@ -9,6 +9,8 @@ $text-secondary: #4a5568;       // Darker gray for better readability
 $border-color: darken(#dfe4ea, 20%);         // Slightly darker border for definition
 $card-highlight: lighten($card-background, 5%);       // highlight for panel cards
 
+$accent-oneoff: #e07c0a;  // Orange color for one-off activities
+$gradient-oneoff: linear-gradient(135deg, $accent-oneoff 0%, lighten($accent-oneoff, 5%) 100%);
 $gradient-primary: linear-gradient(135deg, $accent-color 0%, lighten($accent-color, 5%) 100%);
 $gradient-secondary: linear-gradient(135deg, $accent-secondary 0%, lighten($accent-secondary, 5%) 100%);
 

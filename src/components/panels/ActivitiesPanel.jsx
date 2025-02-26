@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { getActivities, addActivity, deleteActivity, checkActivityAssignments, removeActivityAssignments, updateActivity } from '../../lib/db';
 import PlusIcon from '../common/icons/PlusIcon';
-import { CALENDAR_RELOAD_EVENT } from '../calendar/Calendar';
+import { CALENDAR_RELOAD_EVENT, CALENDAR_DATE_EVENT } from '../calendar/Calendar';
 
 export default function ActivitiesPanel() {
   const [activities, setActivities] = useState([]);
@@ -11,16 +11,29 @@ export default function ActivitiesPanel() {
     name: '',
     day: 1,
     time: '15:00',
-    location: ''
+    location: '',
+    is_recurring: true
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [confirmingDelete, setConfirmingDelete] = useState(null);
   const [hasAssignments, setHasAssignments] = useState(false);
   const [editingActivityId, setEditingActivityId] = useState(null);
+  const [currentCalendarDate, setCurrentCalendarDate] = useState(null);
 
   useEffect(() => {
     loadActivities();
+    
+    // Listen for calendar date changes
+    const handleCalendarDateChange = (e) => {
+      setCurrentCalendarDate(e.detail.date);
+    };
+    
+    window.addEventListener(CALENDAR_DATE_EVENT, handleCalendarDateChange);
+    
+    return () => {
+      window.removeEventListener(CALENDAR_DATE_EVENT, handleCalendarDateChange);
+    };
   }, []);
 
   async function loadActivities() {
@@ -46,17 +59,32 @@ export default function ActivitiesPanel() {
         await updateActivity(editingActivityId, newActivity);
       } else {
         // Add new activity
-        await addActivity(newActivity);
+        const activityToAdd = { ...newActivity };
+        
+        // If it's a one-off activity and we have a calendar date, use it
+        if (!activityToAdd.is_recurring && currentCalendarDate) {
+          // Calculate the correct date based on the selected day of week
+          // currentCalendarDate is the start of the week (Monday)
+          const startDate = new Date(currentCalendarDate);
+          const targetDay = activityToAdd.day; // 1-7 (Mon-Sun)
+          
+          // Add days to the start date to get to the selected day
+          // Monday is day 1, so we subtract 1 to get the correct offset
+          const daysToAdd = targetDay - 1;
+          startDate.setDate(startDate.getDate() + daysToAdd);
+          
+          activityToAdd.targetDate = startDate.toISOString().split('T')[0];
+        }
+        
+        await addActivity(activityToAdd);
       }
-      setNewActivity({ name: '', day: 1, time: '15:00', location: '' });
+      setNewActivity({ name: '', day: 1, time: '15:00', location: '', is_recurring: true });
       setIsAddingActivity(false);
       setEditingActivityId(null);
       loadActivities();
       
-      // Trigger calendar reload if editing
-      if (editingActivityId) {
-        window.dispatchEvent(new Event(CALENDAR_RELOAD_EVENT));
-      }
+      // Trigger calendar reload
+      window.dispatchEvent(new Event(CALENDAR_RELOAD_EVENT));
     } catch (err) {
       setError(`Failed to ${editingActivityId ? 'update' : 'add'} activity. Please try again.`);
       console.error(`Error ${editingActivityId ? 'updating' : 'adding'} activity:`, err);
@@ -75,7 +103,7 @@ export default function ActivitiesPanel() {
   }
 
   function handleCancelEdit() {
-    setNewActivity({ name: '', day: 1, time: '15:00', location: '' });
+    setNewActivity({ name: '', day: 1, time: '15:00', location: '', is_recurring: true });
     setIsAddingActivity(false);
     setEditingActivityId(null);
   }
@@ -156,6 +184,19 @@ export default function ActivitiesPanel() {
             onChange={e => setNewActivity({...newActivity, location: e.target.value})}
             required
           />
+          
+          {!editingActivityId && (
+            <div className="panel__form-check">
+              <input
+                type="checkbox"
+                id="is_recurring"
+                checked={newActivity.is_recurring}
+                onChange={e => setNewActivity({...newActivity, is_recurring: e.target.checked})}
+              />
+              <label htmlFor="is_recurring">Recurring</label>
+            </div>
+          )}
+          
           <div className="panel__form-actions">
             <button type="submit" className="button button--primary">
               {editingActivityId ? 'Update' : 'Save'}

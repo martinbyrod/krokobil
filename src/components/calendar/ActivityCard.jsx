@@ -15,6 +15,9 @@ export default function ActivityCard({ activity }) {
   const activityDate = parseISO(activity.date)
   const activityTime = activity.time ? new Date(`2000-01-01T${activity.time}`) : null
   
+  // Determine if this is a one-off activity
+  const isOneOff = activity.is_one_time === true
+  
   useEffect(() => {
     if (activity.instance_id) {
       loadAssignments()
@@ -44,7 +47,7 @@ export default function ActivityCard({ activity }) {
   }
   
   return (
-    <div className="calendar-activity">
+    <div className={`calendar-activity ${isOneOff ? 'calendar-activity--oneoff' : ''}`}>
       <div className="calendar-activity__header">
         <div className="calendar-activity__title">
           <div className="calendar-activity__name">{activity.name}</div>

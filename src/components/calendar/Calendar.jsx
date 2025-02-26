@@ -3,13 +3,25 @@ import { startOfWeek, addDays, format, addWeeks } from 'date-fns'
 import CalendarWeek from './CalendarWeek'
 import { getActivityInstances } from '../../lib/db'
 
-// Create a custom event for calendar reloads
+// Create custom events for calendar interactions
 export const CALENDAR_RELOAD_EVENT = 'calendar-reload-event';
+export const CALENDAR_DATE_EVENT = 'calendar-date-event';
 
 export default function Calendar() {
   const [startDate, setStartDate] = useState(startOfWeek(new Date(), { weekStartsOn: 1 }))
   const [activities, setActivities] = useState([])
   const [isLoading, setIsLoading] = useState(true)
+  
+  // Broadcast the current calendar date
+  useEffect(() => {
+    // Format the date for the first day of the first week
+    const formattedDate = format(startDate, 'yyyy-MM-dd');
+    
+    // Dispatch event with the current date
+    window.dispatchEvent(new CustomEvent(CALENDAR_DATE_EVENT, { 
+      detail: { date: formattedDate }
+    }));
+  }, [startDate]);
   
   const fetchActivities = useCallback(async (start = startDate) => {
     setIsLoading(true);
