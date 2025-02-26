@@ -52,7 +52,7 @@ export default function ActivityCard({ activity }) {
         <div className="calendar-activity__title">
           <div className="calendar-activity__name">{activity.name}</div>
           <div className="calendar-activity__time">
-            {activityTime ? format(activityTime, 'h:mm a') : 'No time set'}
+            {activityTime ? format(activityTime, 'h:mm a') : 'Ingen tid angiven'}
           </div>
         </div>
         <button 

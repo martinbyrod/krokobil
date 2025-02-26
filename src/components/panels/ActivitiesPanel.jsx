@@ -134,7 +134,7 @@ export default function ActivitiesPanel() {
   return (
     <div className="panel activities-panel">
       <div className="panel__header">
-        <h2>Activities</h2>
+        <h2>Aktiviteter</h2>
         <button 
           className="button button--add"
           onClick={() => setIsAddingActivity(true)}
@@ -153,7 +153,7 @@ export default function ActivitiesPanel() {
         <form className="panel__form" onSubmit={handleAddActivity}>
           <input
             type="text"
-            placeholder="Activity Name"
+            placeholder="Aktivitetsnamn"
             value={newActivity.name}
             onChange={e => setNewActivity({...newActivity, name: e.target.value})}
             required
@@ -163,13 +163,13 @@ export default function ActivitiesPanel() {
             onChange={e => setNewActivity({...newActivity, day: parseInt(e.target.value)})}
             required
           >
-            <option value={1}>Monday</option>
-            <option value={2}>Tuesday</option>
-            <option value={3}>Wednesday</option>
-            <option value={4}>Thursday</option>
-            <option value={5}>Friday</option>
-            <option value={6}>Saturday</option>
-            <option value={7}>Sunday</option>
+            <option value={1}>Måndag</option>
+            <option value={2}>Tisdag</option>
+            <option value={3}>Onsdag</option>
+            <option value={4}>Torsdag</option>
+            <option value={5}>Fredag</option>
+            <option value={6}>Lördag</option>
+            <option value={7}>Söndag</option>
           </select>
           <input
             type="time"
@@ -179,7 +179,7 @@ export default function ActivitiesPanel() {
           />
           <input
             type="text"
-            placeholder="Location"
+            placeholder="Plats"
             value={newActivity.location}
             onChange={e => setNewActivity({...newActivity, location: e.target.value})}
             required
@@ -193,20 +193,20 @@ export default function ActivitiesPanel() {
                 checked={newActivity.is_recurring}
                 onChange={e => setNewActivity({...newActivity, is_recurring: e.target.checked})}
               />
-              <label htmlFor="is_recurring">Recurring</label>
+              <label htmlFor="is_recurring">Återkommande</label>
             </div>
           )}
           
           <div className="panel__form-actions">
             <button type="submit" className="button button--primary">
-              {editingActivityId ? 'Update' : 'Save'}
+              {editingActivityId ? 'Uppdatera' : 'Spara'}
             </button>
             <button 
               type="button" 
               className="button button--secondary"
               onClick={handleCancelEdit}
             >
-              Cancel
+              Avbryt
             </button>
           </div>
         </form>
@@ -214,9 +214,9 @@ export default function ActivitiesPanel() {
 
       <div className="panel__list">
         {isLoading ? (
-          <div className="panel__loading">Loading activities...</div>
+          <div className="panel__loading">Laddar aktiviteter...</div>
         ) : activities.length === 0 ? (
-          <div className="panel__empty">No activities added yet</div>
+          <div className="panel__empty">Inga aktiviteter tillagda ännu</div>
         ) : (
           activities.map(activity => (
             <div key={activity.id} className="panel__list-item">
@@ -226,8 +226,8 @@ export default function ActivitiesPanel() {
               >
                 <span className="panel__list-item-name">{activity.name}</span>
                 <div className="panel__list-item-details">
-                  <span>{['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][activity.day - 1]}</span>
-                  <span>{format(new Date(`2000-01-01T${activity.time}`), 'h:mm a')}</span>
+                  <span>{['Mån','Tis','Ons','Tor','Fre','Lör','Sön'][activity.day - 1]}</span>
+                  <span>{format(new Date(`2000-01-01T${activity.time}`), 'HH:mm')}</span>
                   <span>{activity.location}</span>
                 </div>
               </div>

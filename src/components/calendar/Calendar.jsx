@@ -78,7 +78,7 @@ export default function Calendar() {
   }, {})
 
   if (isLoading) {
-    return <div className="calendar__loading">Loading activities...</div>
+    return <div className="calendar__loading">Laddar aktiviteter...</div>
   }
 
   return (
@@ -88,16 +88,16 @@ export default function Calendar() {
           className="button button--nav" 
           onClick={previousWeek}
         >
-          &larr; Previous
+          &larr; Föregående
         </button>
         <h2 className="calendar__date-range">
-          {format(startDate, 'MMMM d')} - {format(addDays(startDate, 13), 'MMMM d, yyyy')}
+          {format(startDate, 'd MMMM')} - {format(addDays(startDate, 13), 'd MMMM yyyy')}
         </h2>
         <button 
           className="button button--nav" 
           onClick={nextWeek}
         >
-          Next &rarr;
+          Nästa &rarr;
         </button>
       </div>
       

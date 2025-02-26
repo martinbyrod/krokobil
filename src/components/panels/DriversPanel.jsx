@@ -94,7 +94,7 @@ export default function DriversPanel() {
   return (
     <div className="panel drivers-panel">
       <div className="panel__header">
-        <h2>Drivers</h2>
+        <h2>Förare</h2>
         <button 
           className="button button--add"
           onClick={() => setIsAddingDriver(true)}
@@ -113,14 +113,14 @@ export default function DriversPanel() {
         <form className="panel__form" onSubmit={handleAddDriver}>
           <input
             type="text"
-            placeholder="Family Name"
+            placeholder="Efternamn"
             value={newDriver.family_name}
             onChange={e => setNewDriver({...newDriver, family_name: e.target.value})}
             required
           />
           <input
             type="number"
-            placeholder="Seat Capacity"
+            placeholder="Antal platser"
             value={newDriver.seat_capacity}
             onChange={e => setNewDriver({...newDriver, seat_capacity: parseInt(e.target.value)})}
             min="1"
@@ -128,14 +128,14 @@ export default function DriversPanel() {
           />
           <div className="panel__form-actions">
             <button type="submit" className="button button--primary">
-              {editingDriverId ? 'Update' : 'Save'}
+              {editingDriverId ? 'Uppdatera' : 'Spara'}
             </button>
             <button 
               type="button" 
               className="button button--secondary"
               onClick={handleCancelEdit}
             >
-              Cancel
+              Avbryt
             </button>
           </div>
         </form>
@@ -143,9 +143,9 @@ export default function DriversPanel() {
 
       <div className="panel__list">
         {isLoading ? (
-          <div className="panel__loading">Loading drivers...</div>
+          <div className="panel__loading">Laddar förare...</div>
         ) : drivers.length === 0 ? (
-          <div className="panel__empty">No drivers added yet</div>
+          <div className="panel__empty">Inga förare tillagda ännu</div>
         ) : (
           drivers.map(driver => (
             <div key={driver.id} className="panel__list-item">
@@ -154,7 +154,7 @@ export default function DriversPanel() {
                 onClick={() => handleEditDriver(driver)}
               >
                 <span className="panel__list-item-name">{driver.family_name}</span>
-                <span className="panel__list-item-capacity">{driver.seat_capacity} seats</span>
+                <span className="panel__list-item-capacity">{driver.seat_capacity} platser</span>
               </div>
               <button 
                 className="button button--delete"

@@ -86,7 +86,7 @@ export default function KidsPanel() {
   return (
     <div className="panel kids-panel">
       <div className="panel__header">
-        <h2>Kids</h2>
+        <h2>Barn</h2>
         <button 
           className="button button--add"
           onClick={() => setIsAddingKid(true)}
@@ -105,7 +105,7 @@ export default function KidsPanel() {
         <form className="panel__form" onSubmit={handleAddKid}>
           <input
             type="text"
-            placeholder="Name"
+            placeholder="Namn"
             value={newKid.name}
             onChange={e => setNewKid({ name: e.target.value })}
             required

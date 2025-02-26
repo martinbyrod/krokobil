@@ -53,12 +53,12 @@ export default function AssignDriverModal({ activity, currentAssignments, onClos
   
   return (
     <Modal onClose={onClose}>
-      <h2>Assign Drivers</h2>
+      <h2>Förare</h2>
       <div className="modal__activity-info">
         <div>{activity.name}</div>
-        <div>{format(new Date(activity.date), 'EEE, MMM d')}</div>
-        <div>{format(new Date(`2000-01-01T${activity.time}`), 'h:mm a')}</div>
-        <div>Instance ID: {activity.instance_id}</div>
+        <div>{format(new Date(activity.date), 'EEE, d MMM')}</div>
+        <div>{format(new Date(`2000-01-01T${activity.time}`), 'HH:mm')}</div>
+        <div>Instans-ID: {activity.instance_id}</div>
       </div>
       
       {error && (
@@ -68,7 +68,7 @@ export default function AssignDriverModal({ activity, currentAssignments, onClos
       )}
       
       {isLoading ? (
-        <div>Loading drivers...</div>
+        <div>Laddar förare...</div>
       ) : (
         <div className="modal__kids-list">
           {drivers.map(driver => (
@@ -84,7 +84,7 @@ export default function AssignDriverModal({ activity, currentAssignments, onClos
                   }
                 }}
               />
-              <span>{driver.family_name} ({driver.seat_capacity} seats)</span>
+              <span>{driver.family_name} ({driver.seat_capacity} platser)</span>
             </label>
           ))}
         </div>
@@ -96,14 +96,14 @@ export default function AssignDriverModal({ activity, currentAssignments, onClos
           onClick={onClose}
           disabled={isSaving}
         >
-          Cancel
+          Avbryt
         </button>
         <button 
           className="button button--primary" 
           onClick={handleAssign}
           disabled={isSaving || selectedDrivers.length === 0}
         >
-          {isSaving ? 'Saving...' : 'Assign Drivers'}
+          {isSaving ? 'Sparar...' : 'Spara'}
         </button>
       </div>
     </Modal>
