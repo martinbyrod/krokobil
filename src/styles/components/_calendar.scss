@@ -201,6 +201,24 @@
     padding: $spacing-xs;
     min-width: 120px;
     color: $text-color;
+    
+    &--removing {
+      background: rgba($error-color, 0.2);
+      border-color: $error-color;
+      opacity: 0.8;
+      position: relative;
+      
+      &::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba($error-color, 0.1);
+        border-radius: 7px;
+      }
+    }
   }
   
   &__driver-header {
@@ -218,11 +236,14 @@
     font-size: 0.875rem;
   }
   
-  &__kid {
-    color: $text-color;
-    margin: $spacing-xxs 0;
+  &__kid, &__passenger {
+    &--removing {
+      color: $error-color;
+      text-decoration: line-through;
+      opacity: 0.7;
+    }
   }
-
+  
   &__empty-state {
     color: $secondary-color;
     font-size: 0.875rem;
@@ -233,11 +254,6 @@
     margin: $spacing-xs 0;
     padding-left: $spacing-sm;
     font-size: 0.875rem;
-  }
-  
-  &__passenger {
-    color: $text-color;
-    margin: $spacing-xxs 0;
   }
   
   &__actions {
@@ -253,6 +269,24 @@
   
   &__location {
     color: rgba(255, 255, 255, 0.9);
+  }
+  
+  &--removing {
+    background: rgba($error-color, 0.2);
+    border-color: $error-color;
+    opacity: 0.8;
+    position: relative;
+    
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba($error-color, 0.1);
+      border-radius: 7px;
+    }
   }
 }
 
@@ -341,11 +375,37 @@
     border: 1px solid $error-color;
     border-radius: 8px;
   }
+  
+  &__confirm-removal {
+    background: rgba($error-color, 0.1);
+    border: 1px solid $error-color;
+    color: darken($error-color, 10%);
+    padding: $spacing-md;
+    border-radius: 8px;
+    margin-bottom: $spacing-md;
+    
+    h3 {
+      color: $error-color;
+      margin-top: 0;
+    }
+    
+    p {
+      margin-bottom: $spacing-sm;
+    }
+    
+    .btn-danger {
+      background: $error-color;
+      
+      &:hover {
+        background: darken($error-color, 10%);
+      }
+    }
+  }
 }
 
 @media (max-width: $breakpoint-md) {
   .calendar-week {
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(7, 1fr);
   }
   
   .calendar-day {
@@ -355,6 +415,12 @@
 
 @media (max-width: $breakpoint-sm) {
   .calendar-week {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(7, 1fr);
   }
+}
+
+.calendar-container {
+  display: flex;
+  width: 100%;
+  overflow-x: auto;
 }

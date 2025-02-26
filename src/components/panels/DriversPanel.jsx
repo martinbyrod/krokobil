@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getDrivers, addDriver, deleteDriver, removeDriverAssignments } from '../../lib/db';
+import { getDrivers, addDriver, deleteDriver, removeDriverAssignments, updateDriver } from '../../lib/db';
 import PlusIcon from '../common/icons/PlusIcon';
 import { CALENDAR_RELOAD_EVENT } from '../calendar/Calendar';
 
@@ -9,6 +9,7 @@ export default function DriversPanel() {
   const [newDriver, setNewDriver] = useState({ family_name: '', seat_capacity: 4 });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingDriverId, setEditingDriverId] = useState(null);
 
   useEffect(() => {
     loadDrivers();
@@ -32,20 +33,52 @@ export default function DriversPanel() {
     e.preventDefault();
     try {
       setError(null);
-      await addDriver(newDriver);
+      if (editingDriverId) {
+        // Update existing driver
+        await updateDriver(editingDriverId, newDriver);
+      } else {
+        // Add new driver
+        await addDriver(newDriver);
+      }
       setNewDriver({ family_name: '', seat_capacity: 4 });
       setIsAddingDriver(false);
+      setEditingDriverId(null);
       loadDrivers();
+      
+      // Trigger calendar reload if editing
+      if (editingDriverId) {
+        window.dispatchEvent(new Event(CALENDAR_RELOAD_EVENT));
+      }
     } catch (err) {
-      setError('Failed to add driver. Please try again.');
-      console.error('Error adding driver:', err);
+      setError(`Failed to ${editingDriverId ? 'update' : 'add'} driver. Please try again.`);
+      console.error(`Error ${editingDriverId ? 'updating' : 'adding'} driver:`, err);
     }
+  }
+
+  function handleEditDriver(driver) {
+    setNewDriver({
+      family_name: driver.family_name,
+      seat_capacity: driver.seat_capacity
+    });
+    setEditingDriverId(driver.id);
+    setIsAddingDriver(true);
+  }
+
+  function handleCancelEdit() {
+    setNewDriver({ family_name: '', seat_capacity: 4 });
+    setIsAddingDriver(false);
+    setEditingDriverId(null);
   }
 
   async function handleDeleteDriver(id) {
     if (window.confirm('Are you sure you want to delete this driver?')) {
       try {
         setError(null);
+        
+        // First remove all driver assignments
+        await removeDriverAssignments(id);
+        
+        // Then delete the driver
         await deleteDriver(id);
         loadDrivers();
         
@@ -94,11 +127,13 @@ export default function DriversPanel() {
             required
           />
           <div className="panel__form-actions">
-            <button type="submit" className="button button--primary">Save</button>
+            <button type="submit" className="button button--primary">
+              {editingDriverId ? 'Update' : 'Save'}
+            </button>
             <button 
               type="button" 
               className="button button--secondary"
-              onClick={() => setIsAddingDriver(false)}
+              onClick={handleCancelEdit}
             >
               Cancel
             </button>
@@ -114,7 +149,10 @@ export default function DriversPanel() {
         ) : (
           drivers.map(driver => (
             <div key={driver.id} className="panel__list-item">
-              <div className="panel__list-item-content">
+              <div 
+                className="panel__list-item-content"
+                onClick={() => handleEditDriver(driver)}
+              >
                 <span className="panel__list-item-name">{driver.family_name}</span>
                 <span className="panel__list-item-capacity">{driver.seat_capacity} seats</span>
               </div>

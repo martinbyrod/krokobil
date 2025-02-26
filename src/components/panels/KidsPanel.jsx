@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { getKids, addKid, deleteKid } from '../../lib/db';
+import { getKids, addKid, deleteKid, updateKid } from '../../lib/db';
 import PlusIcon from '../common/icons/PlusIcon';
 import { CALENDAR_RELOAD_EVENT } from '../calendar/Calendar';
 
@@ -9,6 +9,7 @@ export default function KidsPanel() {
   const [newKid, setNewKid] = useState({ name: '' });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [editingKidId, setEditingKidId] = useState(null);
 
   useEffect(() => {
     loadKids();
@@ -32,14 +33,38 @@ export default function KidsPanel() {
     e.preventDefault();
     try {
       setError(null);
-      await addKid(newKid);
+      if (editingKidId) {
+        // Update existing kid
+        await updateKid(editingKidId, newKid);
+      } else {
+        // Add new kid
+        await addKid(newKid);
+      }
       setNewKid({ name: '' });
       setIsAddingKid(false);
+      setEditingKidId(null);
       loadKids();
+      
+      // Trigger calendar reload if editing
+      if (editingKidId) {
+        window.dispatchEvent(new Event(CALENDAR_RELOAD_EVENT));
+      }
     } catch (err) {
-      setError('Failed to add kid. Please try again.');
-      console.error('Error adding kid:', err);
+      setError(`Failed to ${editingKidId ? 'update' : 'add'} kid. Please try again.`);
+      console.error(`Error ${editingKidId ? 'updating' : 'adding'} kid:`, err);
     }
+  }
+
+  function handleEditKid(kid) {
+    setNewKid({ name: kid.name });
+    setEditingKidId(kid.id);
+    setIsAddingKid(true);
+  }
+
+  function handleCancelEdit() {
+    setNewKid({ name: '' });
+    setIsAddingKid(false);
+    setEditingKidId(null);
   }
 
   async function handleDeleteKid(id) {
@@ -86,11 +111,13 @@ export default function KidsPanel() {
             required
           />
           <div className="panel__form-actions">
-            <button type="submit" className="button button--primary">Save</button>
+            <button type="submit" className="button button--primary">
+              {editingKidId ? 'Update' : 'Save'}
+            </button>
             <button 
               type="button" 
               className="button button--secondary"
-              onClick={() => setIsAddingKid(false)}
+              onClick={handleCancelEdit}
             >
               Cancel
             </button>
@@ -106,7 +133,10 @@ export default function KidsPanel() {
         ) : (
           kids.map(kid => (
             <div key={kid.id} className="panel__list-item">
-              <div className="panel__list-item-content">
+              <div 
+                className="panel__list-item-content"
+                onClick={() => handleEditKid(kid)}
+              >
                 <span className="panel__list-item-name">{kid.name}</span>
               </div>
               <button 

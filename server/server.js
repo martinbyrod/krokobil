@@ -624,6 +624,165 @@ app.delete('/api/activities/:id/assignments', async (req, res) => {
   }
 });
 
+// Update a driver
+app.put('/api/drivers/:id', async (req, res) => {
+  const { family_name, seat_capacity } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE drivers SET family_name = $1, seat_capacity = $2 WHERE id = $3 RETURNING *',
+      [family_name, seat_capacity, req.params.id]
+    );
+    
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Driver not found' });
+    } else {
+      res.json(result.rows[0]);
+    }
+  } catch (err) {
+    console.error('Error updating driver:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update a kid
+app.put('/api/kids/:id', async (req, res) => {
+  const { name } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE kids SET name = $1 WHERE id = $2 RETURNING *',
+      [name, req.params.id]
+    );
+    
+    if (result.rows.length === 0) {
+      res.status(404).json({ error: 'Kid not found' });
+    } else {
+      res.json(result.rows[0]);
+    }
+  } catch (err) {
+    console.error('Error updating kid:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Update an activity
+app.put('/api/activities/:id', async (req, res) => {
+  const { name, day, time, location } = req.body;
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // First, get the current activity to check if day is changing
+    const { rows: currentActivity } = await client.query(
+      'SELECT * FROM activities WHERE id = $1',
+      [req.params.id]
+    );
+    
+    if (currentActivity.length === 0) {
+      await client.query('ROLLBACK');
+      return res.status(404).json({ error: 'Activity not found' });
+    }
+    
+    const isDayChanging = parseInt(currentActivity[0].day) !== parseInt(day);
+    console.log(`Activity day changing: ${isDayChanging}, from ${currentActivity[0].day} to ${day}`);
+    
+    // Update the activity
+    const result = await client.query(
+      'UPDATE activities SET name = $1, day = $2, time = $3, location = $4 WHERE id = $5 RETURNING *',
+      [name, day, time, location, req.params.id]
+    );
+    
+    // Only delete instances if the day is changing
+    if (isDayChanging) {
+      console.log(`Day changed from ${currentActivity[0].day} to ${day}, deleting instances`);
+      
+      // Get all activity instances for this activity
+      const { rows: instances } = await client.query(
+        'SELECT id FROM activity_instances WHERE activity_id = $1',
+        [req.params.id]
+      );
+      
+      const instanceIds = instances.map(i => i.id);
+      
+      if (instanceIds.length > 0) {
+        // Delete all kid assignments for drivers assigned to these activity instances
+        await client.query(`
+          DELETE FROM kid_assignments
+          WHERE driver_assignment_id IN (
+            SELECT id FROM driver_assignments
+            WHERE activity_instance_id = ANY($1)
+          )
+        `, [instanceIds]);
+        
+        // Delete all driver assignments for these activity instances
+        await client.query(`
+          DELETE FROM driver_assignments
+          WHERE activity_instance_id = ANY($1)
+        `, [instanceIds]);
+      }
+      
+      // Delete all activity instances for this activity
+      await client.query(
+        'DELETE FROM activity_instances WHERE activity_id = $1',
+        [req.params.id]
+      );
+    }
+    
+    await client.query('COMMIT');
+    res.json(result.rows[0]);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error updating activity:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
+// Add this endpoint to force regenerate activity instances
+app.post('/api/regenerate-activity-instances', async (req, res) => {
+  const { start_date, end_date } = req.body;
+  const client = await pool.connect();
+  
+  try {
+    await client.query('BEGIN');
+    
+    // Delete all activity instances in the date range
+    await client.query(`
+      DELETE FROM activity_instances 
+      WHERE date BETWEEN $1 AND $2
+    `, [start_date, end_date]);
+    
+    // Regenerate activity instances
+    await client.query(`
+      INSERT INTO activity_instances (activity_id, date)
+      SELECT 
+        a.id,
+        generate_series(
+          $1::date, 
+          $2::date, 
+          '7 days'::interval
+        )::date + (a.day - 1) AS date
+      FROM activities a
+      WHERE 
+        generate_series(
+          $1::date, 
+          $2::date, 
+          '7 days'::interval
+        )::date + (a.day - 1) BETWEEN $1 AND $2
+    `, [start_date, end_date]);
+    
+    await client.query('COMMIT');
+    res.json({ success: true });
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Error regenerating activity instances:', err);
+    res.status(500).json({ error: err.message });
+  } finally {
+    client.release();
+  }
+});
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 }); 

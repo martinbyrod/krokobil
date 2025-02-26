@@ -231,4 +231,73 @@ export async function removeActivityAssignments(activityId) {
     throw new Error('Failed to remove activity assignments');
   }
   return response.json();
+}
+
+export async function updateDriver(id, driver) {
+  const response = await fetch(`${API_BASE_URL}/api/drivers/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(driver),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to update driver');
+  }
+  return response.json();
+}
+
+export async function updateKid(id, kid) {
+  const response = await fetch(`${API_BASE_URL}/api/kids/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(kid),
+  });
+  if (!response.ok) {
+    throw new Error('Failed to update kid');
+  }
+  return response.json();
+}
+
+export async function updateActivity(id, activity) {
+  // First update the activity
+  const response = await fetch(`${API_BASE_URL}/api/activities/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(activity),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to update activity');
+  }
+  
+  // Get the current date range from the calendar
+  const today = new Date();
+  const startDate = new Date(today);
+  startDate.setDate(startDate.getDate() - startDate.getDay()); // Start of current week
+  
+  const endDate = new Date(startDate);
+  endDate.setDate(endDate.getDate() + 27); // 4 weeks from start
+  
+  // Force regenerate activity instances for the current calendar view
+  const regenerateResponse = await fetch(`${API_BASE_URL}/api/regenerate-activity-instances`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      start_date: startDate.toISOString().split('T')[0],
+      end_date: endDate.toISOString().split('T')[0]
+    }),
+  });
+  
+  if (!regenerateResponse.ok) {
+    console.error('Failed to regenerate activity instances');
+  }
+  
+  return response.json();
 } 

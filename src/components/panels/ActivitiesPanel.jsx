@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
-import { getActivities, addActivity, deleteActivity, checkActivityAssignments, removeActivityAssignments } from '../../lib/db';
+import { getActivities, addActivity, deleteActivity, checkActivityAssignments, removeActivityAssignments, updateActivity } from '../../lib/db';
 import PlusIcon from '../common/icons/PlusIcon';
 import { CALENDAR_RELOAD_EVENT } from '../calendar/Calendar';
 
@@ -17,6 +17,7 @@ export default function ActivitiesPanel() {
   const [error, setError] = useState(null);
   const [confirmingDelete, setConfirmingDelete] = useState(null);
   const [hasAssignments, setHasAssignments] = useState(false);
+  const [editingActivityId, setEditingActivityId] = useState(null);
 
   useEffect(() => {
     loadActivities();
@@ -40,14 +41,43 @@ export default function ActivitiesPanel() {
     e.preventDefault();
     try {
       setError(null);
-      await addActivity(newActivity);
+      if (editingActivityId) {
+        // Update existing activity
+        await updateActivity(editingActivityId, newActivity);
+      } else {
+        // Add new activity
+        await addActivity(newActivity);
+      }
       setNewActivity({ name: '', day: 1, time: '15:00', location: '' });
       setIsAddingActivity(false);
+      setEditingActivityId(null);
       loadActivities();
+      
+      // Trigger calendar reload if editing
+      if (editingActivityId) {
+        window.dispatchEvent(new Event(CALENDAR_RELOAD_EVENT));
+      }
     } catch (err) {
-      setError('Failed to add activity. Please try again.');
-      console.error('Error adding activity:', err);
+      setError(`Failed to ${editingActivityId ? 'update' : 'add'} activity. Please try again.`);
+      console.error(`Error ${editingActivityId ? 'updating' : 'adding'} activity:`, err);
     }
+  }
+
+  function handleEditActivity(activity) {
+    setNewActivity({
+      name: activity.name,
+      day: activity.day,
+      time: activity.time,
+      location: activity.location
+    });
+    setEditingActivityId(activity.id);
+    setIsAddingActivity(true);
+  }
+
+  function handleCancelEdit() {
+    setNewActivity({ name: '', day: 1, time: '15:00', location: '' });
+    setIsAddingActivity(false);
+    setEditingActivityId(null);
   }
 
   async function handleDeleteActivity(id, removeAssignmentsFirst = false) {
@@ -127,11 +157,13 @@ export default function ActivitiesPanel() {
             required
           />
           <div className="panel__form-actions">
-            <button type="submit" className="button button--primary">Save</button>
+            <button type="submit" className="button button--primary">
+              {editingActivityId ? 'Update' : 'Save'}
+            </button>
             <button 
               type="button" 
               className="button button--secondary"
-              onClick={() => setIsAddingActivity(false)}
+              onClick={handleCancelEdit}
             >
               Cancel
             </button>
@@ -147,7 +179,10 @@ export default function ActivitiesPanel() {
         ) : (
           activities.map(activity => (
             <div key={activity.id} className="panel__list-item">
-              <div className="panel__list-item-content">
+              <div 
+                className="panel__list-item-content"
+                onClick={() => handleEditActivity(activity)}
+              >
                 <span className="panel__list-item-name">{activity.name}</span>
                 <div className="panel__list-item-details">
                   <span>{['Mon','Tue','Wed','Thu','Fri','Sat','Sun'][activity.day - 1]}</span>
