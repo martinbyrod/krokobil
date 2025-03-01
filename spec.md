@@ -24,6 +24,8 @@ The app should be built with React + Vite and javascript (no typescript). We can
 
 It should have a clean, modern look with a responsive and easy to use UI. The layout should be simple and intuitive. We want it to be stylish and modern. The designwork needs to be world class.
 
+The app should be in Swedish, with all text, labels, and interface elements displayed in Swedish language.
+
 UI Layout:
 
 The most important central view will be the calendar week overview. It should at all times be possible to see two weeks. The current week and next week as default. It should also be possible to go back in time indefinitely to see the schedule for previous weeks.

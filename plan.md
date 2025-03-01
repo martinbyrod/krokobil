@@ -104,6 +104,7 @@
 - Mobile-responsive design
 - Intuitive driver and kid assignment
 - Clear visual hierarchy for calendar events
+- All text and interface elements in Swedish language
 
 ### Performance Considerations
 - Optimize calendar rendering
