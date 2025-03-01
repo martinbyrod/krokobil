@@ -1,8 +1,8 @@
-import { createServerAdapter } from '@vercel/node-server-adapter';
 import express from 'express';
 import cors from 'cors';
 import { configureRoutes } from '../server/routes.js';
 
+// Create Express app
 const app = express();
 
 app.use(cors());
@@ -19,5 +19,8 @@ const poolConfig = {
 // Set up all routes
 configureRoutes(app, poolConfig);
 
-// Export the Express app as a serverless function
-export default createServerAdapter(app); 
+// Export a handler function for Vercel
+export default function handler(req, res) {
+  // NOTE: This is a simplified approach and may not handle all Express features
+  return app(req, res);
+} 
